@@ -124,6 +124,9 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
     @Override
     public List<String> onTabComplete(final BukkitActor<?> actor, final CommandManager commandManager, final String commandName,
         final String[] args) {
+        if (commandName.isBlank() || args.length == 0) {
+            return Arrays.asList(commandManager.getCommandNames());
+        }
         final Triple<NodeCommand, Node, String> triple = commandManager.findNode(commandName, args);
         if (triple == null) {
             return Collections.emptyList();
@@ -132,7 +135,10 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
         if (nodeCommand.isRestricted() && actor.hasPermission(nodeCommand.getPermission())) {
             return Collections.emptyList();
         }
-        final String[] path = triple.getC().split(" ");
+        String[] tmpPath = triple.getC().split(" ");
+        final String[] path = new String[tmpPath.length - 1];
+        System.arraycopy(tmpPath, 1, path, 0, path.length);
+        tmpPath = null;
         if (path.length == args.length) {
             return Collections.singletonList(path[path.length - 1]);
         }
@@ -150,9 +156,8 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
             return Collections.emptyList();
         }
         int argIdx = 0;
-        int maxLength = Math.min(path.length, args.length);
-        for (int index = 0; index <= maxLength; index++) {
-            while (args[argIdx++].isEmpty()) {
+        for (int index = 0; index <= path.length; index++) {
+            while (args[argIdx++].isEmpty() && argIdx < args.length) {
             }
         }
         final StringBuilder string = new StringBuilder();
