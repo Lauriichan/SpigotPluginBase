@@ -3,10 +3,9 @@ package me.lauriichan.minecraft.pluginbase.message.config.basic;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
+import me.lauriichan.laylib.json.IJson;
+import me.lauriichan.laylib.json.JsonArray;
+import me.lauriichan.laylib.json.JsonObject;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.config.handler.JsonConfigHandler;
@@ -23,31 +22,31 @@ public final class MessageConfigHandler implements IConfigHandler {
 
     @Override
     public void load(final Configuration configuration, final IDataSource source) throws Exception {
-        JsonElement element;
+        IJson<?> element;
         try (BufferedReader reader = source.openReader()) {
             element = json.asJson(reader);
         }
-        if (!element.isJsonObject()) {
+        if (!element.isObject()) {
             throw new IllegalStateException("Config source doesn't contain a JsonObject");
         }
-        loadToConfig(element.getAsJsonObject(), configuration);
+        loadToConfig(element.asJsonObject(), configuration);
     }
 
     private void loadToConfig(final JsonObject object, final Configuration configuration) {
         for (final String key : object.keySet()) {
-            final JsonElement element = object.get(key);
-            if (element.isJsonNull()) {
+            final IJson<?> element = object.get(key);
+            if (element.isNull()) {
                 continue;
             }
-            if (element.isJsonObject()) {
-                loadToConfig(element.getAsJsonObject(), configuration.getConfiguration(key, true));
+            if (element.isObject()) {
+                loadToConfig(element.asJsonObject(), configuration.getConfiguration(key, true));
                 continue;
             }
-            if (element.isJsonArray()) {
+            if (element.isArray()) {
                 final StringBuilder builder = new StringBuilder();
                 boolean first = true;
-                for (final JsonElement arrayElement : element.getAsJsonArray()) {
-                    if (!arrayElement.isJsonPrimitive()) {
+                for (final IJson<?> arrayElement : element.asJsonArray()) {
+                    if (arrayElement.isObject() || arrayElement.isNull() || arrayElement.isArray()) {
                         continue;
                     }
                     if (first) {
@@ -55,12 +54,12 @@ public final class MessageConfigHandler implements IConfigHandler {
                     } else {
                         builder.append("\n");
                     }
-                    builder.append(arrayElement.getAsString());
+                    builder.append(arrayElement.value().toString());
                 }
                 configuration.set(key, builder.toString());
                 continue;
             }
-            configuration.set(key, element.getAsString());
+            configuration.set(key, element.value().toString());
         }
     }
 
@@ -80,7 +79,7 @@ public final class MessageConfigHandler implements IConfigHandler {
             if (configuration.isConfiguration(key)) {
                 final JsonObject child = new JsonObject();
                 saveToObject(child, configuration.getConfiguration(key));
-                object.add(key, child);
+                object.put(key, child);
                 continue;
             }
             value = configuration.get(key, String.class);
@@ -91,12 +90,12 @@ public final class MessageConfigHandler implements IConfigHandler {
                 lines = value.split("\n");
                 final JsonArray array = new JsonArray();
                 for (final String line : lines) {
-                    array.add(line);
+                    array.add(IJson.of(line));
                 }
-                object.add(key, array);
+                object.put(key, array);
                 continue;
             }
-            object.addProperty(key, value);
+            object.put(key, IJson.of(value));
         }
     }
 

@@ -4,13 +4,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.List;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import me.lauriichan.laylib.json.IJson;
+import me.lauriichan.laylib.json.JsonArray;
+import me.lauriichan.laylib.json.JsonObject;
+import me.lauriichan.laylib.json.io.JsonWriter;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
@@ -20,7 +18,7 @@ public final class JsonConfigHandler implements IConfigHandler {
 
     public static final JsonConfigHandler JSON = new JsonConfigHandler();
 
-    private final Json json = new Json(new GsonBuilder().setPrettyPrinting().setLenient().serializeNulls().disableHtmlEscaping().create());
+    private final Json json = new Json(new JsonWriter().setPretty(true).setSpaces(true).setIndent(4));
 
     private JsonConfigHandler() {}
 
@@ -30,31 +28,31 @@ public final class JsonConfigHandler implements IConfigHandler {
 
     @Override
     public void load(final Configuration configuration, final IDataSource source) throws Exception {
-        JsonElement element;
+        IJson<?> element;
         try (BufferedReader reader = source.openReader()) {
             element = json.asJson(reader);
         }
-        if (!element.isJsonObject()) {
+        if (!element.isObject()) {
             throw new IllegalStateException("Config source doesn't contain a JsonObject");
         }
-        loadToConfig(element.getAsJsonObject(), configuration);
+        loadToConfig(element.asJsonObject(), configuration);
     }
 
     private void loadToConfig(final JsonObject object, final Configuration configuration) {
         for (final String key : object.keySet()) {
-            final JsonElement element = object.get(key);
-            if (element.isJsonNull()) {
+            final IJson<?> element = object.get(key);
+            if (element.isNull()) {
                 continue;
             }
-            if (element.isJsonObject()) {
-                loadToConfig(element.getAsJsonObject(), configuration.getConfiguration(key, true));
+            if (element.isObject()) {
+                loadToConfig(element.asJsonObject(), configuration.getConfiguration(key, true));
                 continue;
             }
-            if (element.isJsonArray()) {
-                configuration.set(key, deserialize(element.getAsJsonArray()));
+            if (element.isArray()) {
+                configuration.set(key, deserialize(element.asJsonArray()));
                 continue;
             }
-            configuration.set(key, deserialize(element.getAsJsonPrimitive()));
+            configuration.set(key, deserialize(element));
         }
     }
 
@@ -64,31 +62,27 @@ public final class JsonConfigHandler implements IConfigHandler {
     })
     private List deserialize(final JsonArray array) {
         final ObjectArrayList list = new ObjectArrayList();
-        for (final JsonElement arrayElement : array) {
-            if (arrayElement.isJsonObject() || arrayElement.isJsonNull()) {
+        for (final IJson<?> arrayElement : array) {
+            if (arrayElement.isObject() || arrayElement.isNull()) {
                 continue;
             }
-            if (arrayElement.isJsonArray()) {
-                list.add(deserialize(arrayElement.getAsJsonArray()));
+            if (arrayElement.isArray()) {
+                list.add(deserialize(arrayElement.asJsonArray()));
                 continue;
             }
-            list.add(deserialize(arrayElement.getAsJsonPrimitive()));
+            list.add(deserialize(arrayElement));
         }
         return list;
     }
 
-    private Object deserialize(final JsonPrimitive primitive) {
+    private Object deserialize(final IJson<?> primitive) {
         if (primitive.isBoolean()) {
-            return primitive.getAsBoolean();
+            return primitive.asJsonBoolean().value();
         }
         if (primitive.isNumber()) {
-            try {
-                return primitive.getAsBigInteger();
-            } catch (final NumberFormatException nfe) {
-                return primitive.getAsBigDecimal();
-            }
+            return primitive.asJsonNumber().value();
         }
-        return primitive.getAsString();
+        return primitive.asJsonString().value();
     }
 
     @Override
@@ -101,23 +95,23 @@ public final class JsonConfigHandler implements IConfigHandler {
     }
 
     private void saveToObject(final JsonObject object, final Configuration configuration) {
-        JsonElement json;
+        IJson<?> json;
         for (final String key : configuration.keySet()) {
             if (configuration.isConfiguration(key)) {
                 final JsonObject child = new JsonObject();
                 saveToObject(child, configuration.getConfiguration(key));
-                object.add(key, child);
+                object.put(key, child);
                 continue;
             }
             json = serialize(configuration.get(key));
             if (json == null) {
                 continue;
             }
-            object.add(key, json);
+            object.put(key, json);
         }
     }
 
-    private JsonElement serialize(final Object object) {
+    private IJson<?> serialize(final Object object) {
         if (object instanceof final List<?> list) {
             final JsonArray array = new JsonArray();
             for (final Object elem : list) {
@@ -125,19 +119,11 @@ public final class JsonConfigHandler implements IConfigHandler {
             }
             return array;
         }
-        if (object instanceof final String string) {
-            return new JsonPrimitive(string);
+        try {
+            return IJson.of(object);
+        } catch (IllegalArgumentException e) {
+            return null; // Ignore unsupported types
         }
-        if (object instanceof final Number number) {
-            return new JsonPrimitive(number);
-        }
-        if (object instanceof final Character character) {
-            return new JsonPrimitive(character);
-        }
-        if (object instanceof final Boolean bool) {
-            return new JsonPrimitive(bool);
-        }
-        return null;
     }
 
 }

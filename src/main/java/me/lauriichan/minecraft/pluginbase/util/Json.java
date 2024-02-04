@@ -1,34 +1,47 @@
 package me.lauriichan.minecraft.pluginbase.util;
 
+import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import me.lauriichan.laylib.json.IJson;
+import me.lauriichan.laylib.json.io.JsonParser;
+import me.lauriichan.laylib.json.io.JsonSyntaxException;
+import me.lauriichan.laylib.json.io.JsonWriter;
 
 public final class Json {
 
-    private final Gson gson;
+    private final JsonWriter writer;
 
-    public Json(final Gson gson) {
-        this.gson = gson;
+    public Json(final JsonWriter writer) {
+        this.writer = writer;
     }
 
-    public Gson gson() {
-        return gson;
+    public JsonWriter writer() {
+        return writer;
     }
 
-    public JsonElement asJson(String string) {
-        return asJson(new StringReader(string));
+    public IJson<?> asJson(String string) throws IllegalStateException, IllegalArgumentException {
+        try {
+            return JsonParser.fromString(string);
+        } catch (IOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("Failed to parse json element", e);
+        }
     }
 
-    public JsonElement asJson(Reader reader) {
-        return JsonParser.parseReader(gson.newJsonReader(reader));
+    public IJson<?> asJson(Reader reader) throws IllegalStateException, IllegalArgumentException {
+        try {
+            return JsonParser.fromReader(reader);
+        } catch (IOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("Failed to parse json element", e);
+        }
     }
-    
-    public String asString(JsonElement element) {
-        return gson.toJson(element);
+
+    public String asString(IJson<?> element) throws IOException {
+        try {
+            return writer.toString(element);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to serialize json element", e);
+        }
     }
 
 }
