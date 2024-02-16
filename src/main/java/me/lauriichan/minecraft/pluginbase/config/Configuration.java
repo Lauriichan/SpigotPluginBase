@@ -207,6 +207,30 @@ public final class Configuration {
      * Special getter
      */
 
+    public <E extends Enum<E>> E getEnum(final String pathUri, final Class<E> enumClazz) {
+        return getEnum(pathUri, enumClazz, null);
+    }
+
+    public <E extends Enum<E>> E getEnum(final String pathUri, final Class<E> enumClazz, final E fallback) {
+        final Object object = get(pathUri);
+        if (!(object instanceof String string)) {
+            return fallback;
+        }
+        try {
+            return Enum.valueOf(enumClazz, string);
+        } catch (IllegalArgumentException exp1) {
+            try {
+                return Enum.valueOf(enumClazz, string.toUpperCase());
+            } catch(IllegalArgumentException exp2) {
+                try {
+                    return Enum.valueOf(enumClazz, string.toLowerCase());
+                } catch(IllegalArgumentException exp3) {
+                    return fallback;
+                }
+            }
+        }
+    }
+
     public Number getNumber(final String pathUri) {
         return getNumber(pathUri, 0);
     }
