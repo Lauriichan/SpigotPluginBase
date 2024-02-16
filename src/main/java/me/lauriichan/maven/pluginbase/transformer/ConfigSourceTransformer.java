@@ -75,7 +75,6 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             return;
         }
 
-        importClass(clazz, Objects.class);
         importClass(clazz, Configuration.class);
         clazz.addField("private volatile boolean generated$modified0 = false;");
 
@@ -95,6 +94,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
         ConfigField configField;
         FieldSource<JavaClassSource> field;
         MethodSource<JavaClassSource> method;
+        boolean needObjectsImport = false;
         for (int index = 0; index < configFields.size(); index++) {
             field = (configField = configFields.get(index)).field();
             method = validators.get(configField.name());
@@ -111,6 +111,9 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             field.setStatic(false);
             field.setVolatile(false);
             field.setFinal(false);
+            if (!field.getType().isPrimitive()) {
+                needObjectsImport = true;
+            }
             clazz.addField("private final %2$s generatedDefault$%1$s = %1$s;".formatted(field.getName(),
                 field.getType().getQualifiedNameWithGenerics()));
             removeMethod(clazz, field.getName());
@@ -190,6 +193,9 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 saveBuilder.append("configuration.set(\"").append(configField.name()).append("\", this.").append(field.getName())
                     .append(");");
             }
+        }
+        if (needObjectsImport) {
+            importClass(clazz, Objects.class);
         }
         method = clazz.getMethod("isModified", Configuration.class);
         if (method != null) {
