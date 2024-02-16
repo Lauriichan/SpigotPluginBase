@@ -14,6 +14,7 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.lauriichan.maven.sourcemod.api.ISourceTransformer;
 import me.lauriichan.minecraft.pluginbase.config.Config;
@@ -24,17 +25,7 @@ import me.lauriichan.minecraft.pluginbase.extension.Extension;
 
 public class ConfigSourceTransformer implements ISourceTransformer {
 
-    private static class ConfigField {
-
-        private final FieldSource<JavaClassSource> field;
-        private final String name;
-
-        public ConfigField(final FieldSource<JavaClassSource> field, final String name) {
-            this.field = field;
-            this.name = name;
-        }
-
-    }
+    private static record ConfigField(FieldSource<JavaClassSource> field, String name) {}
 
     @Override
     public boolean canTransform(final JavaSource<?> source) {
@@ -57,6 +48,19 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 continue;
             }
             configFields.add(new ConfigField(field, field.getAnnotation(ConfigValue.class).getStringValue()));
+        }
+        
+        Object2ObjectArrayMap<String, MethodSource<JavaClassSource>> validators = new Object2ObjectArrayMap<>();
+        final List<MethodSource<JavaClassSource>> methods = clazz.getMethods();
+        for (final MethodSource<JavaClassSource> method : methods) {
+            if (!method.hasAnnotation(ConfigValue.class) || method.getReturnType().isType(void.class) || method.getReturnType().isType(Void.class)) {
+                continue;
+            }
+            String value = method.getAnnotation(ConfigValue.class).getStringValue();
+            if (validators.containsKey(value)) {
+                throw new IllegalStateException("Duplicated validator for field '" + value + "': " + method.getName());
+            }
+            validators.put(value, method);
         }
 
         if (!clazz.hasAnnotation(Extension.class)) {
@@ -92,8 +96,19 @@ public class ConfigSourceTransformer implements ISourceTransformer {
 
         ConfigField configField;
         FieldSource<JavaClassSource> field;
+        MethodSource<JavaClassSource> method;
         for (int index = 0; index < configFields.size(); index++) {
-            field = (configField = configFields.get(index)).field;
+            field = (configField = configFields.get(index)).field();
+            method = validators.get(configField.name());
+            if (method != null) {
+                if (method.getReturnType().equals(field.getType())) {
+                    method.setVisibility(Visibility.PRIVATE);
+                    method.setStatic(false);
+                    method.setFinal(true);
+                } else {
+                    method = null;
+                }
+            }
             field.setVisibility(Visibility.PRIVATE);
             field.setStatic(false);
             field.setVolatile(false);
@@ -134,7 +149,11 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 if (index != 0) {
                     loadBuilder.append('\n');
                 }
-                loadBuilder.append("this.").append(field.getName()).append(" = configuration.get");
+                loadBuilder.append("this.").append(field.getName()).append(" = ");
+                if (method != null) {
+                    loadBuilder.append(method.getName()).append('(');
+                }
+                loadBuilder.append("configuration.get");
                 final Type<JavaClassSource> type = field.getType();
                 boolean primitive = false;
                 if (type.isPrimitive()) {
@@ -161,16 +180,19 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                         primitive = true;
                     }
                 }
-                loadBuilder.append("(\"").append(configField.name).append('"');
+                loadBuilder.append("(\"").append(configField.name()).append('"');
                 if (!primitive) {
                     loadBuilder.append(", ").append(type.getQualifiedName()).append(".class");
                 }
-                loadBuilder.append(", generatedDefault$").append(field.getName()).append(");");
-                saveBuilder.append("configuration.set(\"").append(configField.name).append("\", this.").append(field.getName())
+                loadBuilder.append(", generatedDefault$").append(field.getName());
+                if (method != null) {
+                    loadBuilder.append(')');
+                }
+                loadBuilder.append(");");
+                saveBuilder.append("configuration.set(\"").append(configField.name()).append("\", this.").append(field.getName())
                     .append(");");
             }
         }
-        MethodSource<JavaClassSource> method;
         if (loadBuilder != null) {
             method = clazz.getMethod("onLoad", Configuration.class);
             if (method != null) {
