@@ -99,7 +99,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             field = (configField = configFields.get(index)).field();
             method = validators.get(configField.name());
             if (method != null) {
-                if (method.getReturnType().equals(field.getType())) {
+                if (method.getReturnType().isType(field.getType().getQualifiedName())) {
                     method.setVisibility(Visibility.PRIVATE);
                     method.setStatic(false);
                     method.setFinal(true);
