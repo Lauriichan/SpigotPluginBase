@@ -70,16 +70,14 @@ public class ConfigSourceTransformer implements ISourceTransformer {
 
         clazz.setPublic();
         clazz.setFinal(true);
+        
+        if (configFields.isEmpty()) {
+            return;
+        }
+
         importClass(clazz, Objects.class);
         importClass(clazz, Configuration.class);
         clazz.addField("private volatile boolean generated$modified0 = false;");
-        removeMethod(clazz, "isModified");
-        clazz.addMethod("""
-            @Override
-            public boolean isModified() {
-                return this.generated$modified0;
-            }
-            """);
 
         StringBuilder loadBuilder = new StringBuilder();
         StringBuilder saveBuilder = new StringBuilder();
@@ -193,28 +191,42 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                     .append(");");
             }
         }
-        if (loadBuilder != null) {
-            method = clazz.getMethod("onLoad", Configuration.class);
-            if (method != null) {
-                method.setName("user$onLoad");
-                method.setPrivate();
-                removeAnnotation(method, Override.class);
-                loadBuilder.append("\nuser$onLoad(configuration);");
-            }
-            clazz.addMethod(loadBuilder.append("\n}").toString());
-            loadBuilder = null;
+        method = clazz.getMethod("isModified", Configuration.class);
+        if (method != null) {
+            method.setName("user$isModified");
+            method.setPrivate();
+            removeAnnotation(method, Override.class);
+            clazz.addMethod("""
+                @Override
+                public boolean isModified() {
+                    return this.generated$modified0 || user$isModified();
+                }
+                """);
+            
+        } else {
+            clazz.addMethod("""
+                @Override
+                public boolean isModified() {
+                    return this.generated$modified0;
+                }
+                """);
         }
-        if (saveBuilder != null) {
-            method = clazz.getMethod("onSave", Configuration.class);
-            if (method != null) {
-                method.setName("user$onSave");
-                method.setPrivate();
-                removeAnnotation(method, Override.class);
-                saveBuilder.append("\nuser$onSave(configuration);");
-            }
-            clazz.addMethod(saveBuilder.append("\n}").toString());
-            saveBuilder = null;
+        method = clazz.getMethod("onLoad", Configuration.class);
+        if (method != null) {
+            method.setName("user$onLoad");
+            method.setPrivate();
+            removeAnnotation(method, Override.class);
+            loadBuilder.append("\nuser$onLoad(configuration);");
         }
+        clazz.addMethod(loadBuilder.append("\n}").toString());
+        method = clazz.getMethod("onSave", Configuration.class);
+        if (method != null) {
+            method.setName("user$onSave");
+            method.setPrivate();
+            removeAnnotation(method, Override.class);
+            saveBuilder.append("\nuser$onSave(configuration);");
+        }
+        clazz.addMethod(saveBuilder.append("\n}").toString());
     }
 
     private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String content) {
