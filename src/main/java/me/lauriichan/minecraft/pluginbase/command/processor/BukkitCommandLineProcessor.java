@@ -185,17 +185,29 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
             return createSuggestions(actor, "", argument);
         }
         String data = "";
+        Character startChar = null;
         while (argument != null) {
             if (!reader.hasNext()) {
                 if (data.contains(" ")) {
                     String[] parts = data.split(" ");
-                    return Collections.singletonList(parts[parts.length - 1] + parts[0].charAt(0));
+                    if (startChar == null || parts.length != 0 && parts[parts.length - 1].endsWith(Character.toString(startChar))) {
+                        return Collections.singletonList(data.endsWith(" ") ? "" : parts[parts.length - 1]);
+                    }
+                    return Collections.singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
+                }
+                if (startChar != null && StringReader.isQuote(startChar)) {
+                    return Collections.singletonList(startChar + data + startChar);
                 }
                 return Collections.singletonList(data);
             }
             if (!reader.skipWhitespace().hasNext()) {
+                if (startChar != null && StringReader.isQuote(startChar) && data.endsWith(Character.toString(startChar))) {
+                    String[] parts = data.split(" ");
+                    return Collections.singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
+                }
                 return createSuggestions(actor, "", argument);
             }
+            startChar = reader.peek();
             data = reader.read();
             try {
                 process.provide(actor, data);
