@@ -52,6 +52,16 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     private volatile ConfigManager configManager;
 
     private volatile PagedInventoryRegistry pagedInventoryRegistry;
+    
+    private volatile boolean actDisabled;
+    
+    protected final void actDisabled(boolean actDisabled) {
+        this.actDisabled = actDisabled;
+    }
+    
+    protected final boolean actDisabled() {
+        return actDisabled;
+    }
 
     @Override
     public final void onLoad() {
@@ -124,6 +134,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     @Override
     public final void onEnable() {
+        if (actDisabled) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         if (state != 1 && state != 4) {
             return;
         }
@@ -150,7 +164,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     }
 
     final void onReady() {
-        if (state != 2) {
+        if (actDisabled || (state != 2)) {
             return;
         }
         state = 3;
@@ -169,7 +183,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     @Override
     public final void onDisable() {
-        if (state != 2 && state != 3) {
+        if (actDisabled || (state != 2 && state != 3)) {
             return;
         }
         state = 4;
