@@ -52,7 +52,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
             return;
         }
         final Node node = triple.getB();
-        final String commandPath = triple.getC().substring(1);
+        final String commandPath = triple.getC().substring(commandManager.getPrefix().length());
         if (node.getAction() == null) {
             actor.sendTranslatedMessage("command.process.create.no-action", Key.of("command", commandPath));
             return;
