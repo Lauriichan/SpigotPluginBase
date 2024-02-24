@@ -187,6 +187,10 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
         String data = "";
         while (argument != null) {
             if (!reader.hasNext()) {
+                if (data.contains(" ")) {
+                    String[] parts = data.split(" ");
+                    return Collections.singletonList(parts[parts.length - 1] + parts[0].charAt(0));
+                }
                 return Collections.singletonList(data);
             }
             if (!reader.skipWhitespace().hasNext()) {
