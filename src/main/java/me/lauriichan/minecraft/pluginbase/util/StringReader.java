@@ -160,7 +160,8 @@ public class StringReader implements Iterator<Character> {
                 continue;
             }
         }
-        throw new IllegalArgumentException("Quoted String didn't stop at " + getCursor());
+        // We don't need to do an error here
+        return builder.toString();
     }
 
     public String read() {
