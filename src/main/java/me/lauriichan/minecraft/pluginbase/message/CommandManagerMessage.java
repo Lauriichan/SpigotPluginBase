@@ -12,7 +12,7 @@ public enum CommandManagerMessage implements IMessageDefinition, IMessageExtensi
     CANCEL_UNAVAILABLE("$#plugin.prefix You currently have no active command process to cancel!"),
     CANCEL_SUCCESS("$#plugin.prefix Successfully cancelled the process of command '&c$command&7'!"),
 
-    CREATE_NO$COMMAND("$#plugin.prefix The command '&c$command&7' doesn't exist!"),
+    CREATE_NO$COMMAND("$#plugin.prefix The command '&c$label&7' doesn't exist!"),
     CREATE_NO$ACTION("$#plugin.prefix The command '&c$command&7' has no action to be executed!"),
     CREATE_SUCCESS("$#plugin.prefix Successfully started command process for command '&c$command&7'!"),
 

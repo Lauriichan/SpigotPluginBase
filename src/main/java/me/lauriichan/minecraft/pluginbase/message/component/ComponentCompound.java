@@ -1,9 +1,9 @@
 package me.lauriichan.minecraft.pluginbase.message.component;
 
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.md_5.bungee.api.chat.BaseComponent;
 
 public final class ComponentCompound extends SendableComponent {
@@ -12,9 +12,17 @@ public final class ComponentCompound extends SendableComponent {
         return new ComponentCompound();
     }
 
-    private final ArrayList<Component> components = new ArrayList<>();
+    private final ObjectArrayList<Component> components = new ObjectArrayList<>();
 
     private ComponentCompound() {}
+    
+    public int size() {
+        return components.size();
+    }
+    
+    public boolean isEmpty() {
+        return components.isEmpty();
+    }
 
     public ComponentCompound add(final Component component) {
         components.add(Objects.requireNonNull(component));
@@ -43,7 +51,7 @@ public final class ComponentCompound extends SendableComponent {
         }
         int length = 0;
         final Component[] components = this.components.toArray(Component[]::new);
-        final ArrayList<BaseComponent[]> messages = new ArrayList<>();
+        final ObjectArrayList<BaseComponent[]> messages = new ObjectArrayList<>();
         for (int index = 0; index < components.length; index++) {
             final BaseComponent[] message = components[index].build();
             messages.add(message);
