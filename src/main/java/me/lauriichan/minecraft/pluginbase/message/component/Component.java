@@ -3,6 +3,8 @@ package me.lauriichan.minecraft.pluginbase.message.component;
 import java.awt.Color;
 import java.util.Arrays;
 
+import me.lauriichan.laylib.command.Action;
+import me.lauriichan.laylib.command.ActionMessage;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.MessageProvider;
@@ -12,6 +14,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Entity;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public final class Component extends SendableComponent {
 
@@ -32,6 +35,50 @@ public final class Component extends SendableComponent {
 
     public static Component of(final String message) {
         return new Component(message);
+    }
+
+    public static Component of(final ActionMessage message) {
+        if (message == null || message.message() == null) {
+            return new Component("");
+        }
+        ClickEvent click = null;
+        HoverEvent hover = null;
+        if (message.clickAction() != null) {
+            final Action clickAction = message.clickAction();
+            switch (clickAction.getType()) {
+            case CLICK_COPY:
+                try {
+                    click = new ClickEvent(ClickEvent.Action.valueOf("COPY_TO_CLIPBOARD"), clickAction.getValueAsString());
+                } catch (final IllegalArgumentException exp) {
+                }
+                break;
+            case CLICK_FILE:
+                click = new ClickEvent(ClickEvent.Action.OPEN_FILE, clickAction.getValueAsString());
+                break;
+            case CLICK_RUN:
+                click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, clickAction.getValueAsString());
+                break;
+            case CLICK_SUGGEST:
+                click = new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, clickAction.getValueAsString());
+                break;
+            case CLICK_URL:
+                click = new ClickEvent(ClickEvent.Action.OPEN_URL, clickAction.getValueAsString());
+                break;
+            default:
+                break;
+            }
+        }
+        if (message.hoverAction() != null) {
+            final Action hoverAction = message.hoverAction();
+            switch (hoverAction.getType()) {
+            case HOVER_TEXT:
+                hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ComponentParser.parse(hoverAction.getValueAsString())));
+                break;
+            default:
+                break;
+            }
+        }
+        return new Component(message.message()).click(click).hover(hover);
     }
 
     private final String message;
