@@ -8,7 +8,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.sourceDir>${project.build.directory}/project-sources</project.sourceDir>
-        <laylib.version>0.1.0-c4393c1-SNAPSHOT</laylib.version>
+        <laylib.version>0.1.0-37564de-SNAPSHOT</laylib.version>
         <server.version>1.20.1</server.version>
     </properties>
     <dependencies>
