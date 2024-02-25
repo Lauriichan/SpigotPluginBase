@@ -73,7 +73,13 @@ public final class ItemEditor {
 
     // Name
     public String getName() {
-        if (itemMeta == null) {
+        if (itemMeta == null || !itemMeta.hasDisplayName() || itemMeta.getDisplayName().isBlank()) {
+            return StringUtil.formatPascalCase(itemStack.getType().getKey().getKey().replace('_', ' '));
+        }
+        return itemMeta.getDisplayName();
+    }
+    public String getRawName() {
+        if (itemMeta == null || !itemMeta.hasDisplayName()) {
             return StringUtil.formatPascalCase(itemStack.getType().getKey().getKey().replace('_', ' '));
         }
         return itemMeta.getDisplayName();
