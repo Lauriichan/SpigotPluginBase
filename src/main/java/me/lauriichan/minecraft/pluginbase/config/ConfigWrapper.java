@@ -61,7 +61,7 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     public int reload(final boolean wipeAfterLoad) {
         final Configuration configuration = new Configuration();
         if (source.exists()) {
-            if (lastTimeModified == source.lastModified()) {
+            if (lastTimeModified == source.lastModified() && !config.isModified()) {
                 return SKIPPED;
             }
             try {
