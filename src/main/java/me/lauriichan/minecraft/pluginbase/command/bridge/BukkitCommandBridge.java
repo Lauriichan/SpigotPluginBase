@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -61,7 +62,12 @@ public abstract class BukkitCommandBridge<A extends BukkitActor<?>> implements C
     @Override
     public List<String> onTabComplete(final CommandSender sender, final Command command, final String label, final String[] args) {
         return processor.onTabComplete(actorBuilder.apply(sender, messageManager), commandManager, getCommandName(label, args, true),
-            getCommandArguments(args, true));
+            getCommandArguments(args, true), null);
+    }
+
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String label, final String[] args, final Location location) {
+        return processor.onTabComplete(actorBuilder.apply(sender, messageManager), commandManager, getCommandName(label, args, true),
+            getCommandArguments(args, true), location);
     }
 
 }

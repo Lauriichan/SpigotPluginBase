@@ -1,5 +1,8 @@
 package me.lauriichan.minecraft.pluginbase.config;
 
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
@@ -18,8 +21,10 @@ public final class ConfigManager {
         });
     }
     
-    public void reload() {
-        configs.values().forEach(wrapper -> wrapper.reload(false));
+    public Object2IntMap<ConfigWrapper<?>> reload() {
+        Object2IntArrayMap<ConfigWrapper<?>> results = new Object2IntArrayMap<>(configs.size());
+        configs.values().forEach(wrapper -> results.put(wrapper, wrapper.reload(false)));
+        return Object2IntMaps.unmodifiable(results);
     }
     
     public ObjectCollection<ConfigWrapper<?>> wrappers() {

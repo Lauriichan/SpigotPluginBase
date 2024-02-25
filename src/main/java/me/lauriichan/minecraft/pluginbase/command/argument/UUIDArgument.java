@@ -32,7 +32,7 @@ public class UUIDArgument implements IArgumentType<UUID> {
     }
 
     @Override
-    public UUID parse(Actor<?> actor, String input) throws IllegalArgumentException {
+    public UUID parse(Actor<?> actor, String input, IArgumentMap map) throws IllegalArgumentException {
         UUID uuid = uuidFromString(input);
         if (!collection) {
             return uuid;
@@ -44,7 +44,7 @@ public class UUIDArgument implements IArgumentType<UUID> {
     }
 
     @Override
-    public void suggest(Actor<?> actor, String input, Suggestions suggestions) {
+    public void suggest(Actor<?> actor, String input, Suggestions suggestions, IArgumentMap map) {
         if (!collection) {
             return;
         }

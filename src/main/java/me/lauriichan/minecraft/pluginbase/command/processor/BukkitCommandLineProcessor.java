@@ -8,11 +8,16 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import org.bukkit.Location;
+
 import com.google.common.collect.Streams;
 
 import me.lauriichan.laylib.command.Actor;
+import me.lauriichan.laylib.command.ArgumentMap;
 import me.lauriichan.laylib.command.CommandManager;
 import me.lauriichan.laylib.command.CommandProcess;
+import me.lauriichan.laylib.command.EmptyArgumentMap;
+import me.lauriichan.laylib.command.IArgumentMap;
 import me.lauriichan.laylib.command.Node;
 import me.lauriichan.laylib.command.NodeAction;
 import me.lauriichan.laylib.command.NodeArgument;
@@ -136,7 +141,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
     
     @Override
     public List<String> onTabComplete(final BukkitActor<?> actor, final CommandManager commandManager, final String commandName,
-        final String[] args) {
+        final String[] args, final Location location) {
         if (commandName.isBlank() || args.length == 0) {
             return getPermittedCommands(commandManager, actor);
         }
@@ -180,9 +185,13 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
                 string.append(' ');
             }
         }
+        IArgumentMap map = EmptyArgumentMap.INSTANCE;
+        if (location != null) {
+            map = new ArgumentMap().set("location", location);
+        }
         final StringReader reader = new StringReader(string.toString());
         if (!reader.skipWhitespace().hasNext()) {
-            return createSuggestions(actor, "", argument);
+            return createSuggestions(actor, "", argument, map);
         }
         String data = "";
         Character startChar = null;
@@ -205,14 +214,15 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
                     String[] parts = data.split(" ");
                     return Collections.singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
                 }
-                return createSuggestions(actor, "", argument);
+                return createSuggestions(actor, "", argument, map);
             }
             startChar = reader.peek();
             data = reader.read();
             try {
-                process.provide(actor, data);
+                process.provide(actor, data, map);
+                
             } catch (final IllegalArgumentException exp) {
-                return createSuggestions(actor, data, argument);
+                return createSuggestions(actor, data, argument, map);
             }
             argument = process.findNext(actor);
         }
@@ -224,9 +234,9 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
             .flatMap(cmd -> Streams.concat(Stream.of(cmd.getName()), cmd.getAliases().stream())).toList();
     }
 
-    private List<String> createSuggestions(final Actor<?> actor, final String data, final NodeArgument argument) {
+    private List<String> createSuggestions(final Actor<?> actor, final String data, final NodeArgument argument, final IArgumentMap map) {
         final Suggestions suggestions = new Suggestions();
-        argument.getType().suggest(actor, data, suggestions);
+        argument.getType().suggest(actor, data, suggestions, map);
         if (suggestions.hasSuggestions()) {
             final Map.Entry<String, Double>[] entries = suggestions.getSuggestions(suggestionAmount);
             final ArrayList<String> list = new ArrayList<>();

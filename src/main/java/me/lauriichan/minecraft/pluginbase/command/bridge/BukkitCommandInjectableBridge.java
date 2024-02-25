@@ -1,6 +1,5 @@
 package me.lauriichan.minecraft.pluginbase.command.bridge;
 
-import static me.lauriichan.minecraft.pluginbase.command.bridge.BukkitCommandReflection.createCommand;
 import static me.lauriichan.minecraft.pluginbase.command.bridge.BukkitCommandReflection.getCommandMap;
 import static me.lauriichan.minecraft.pluginbase.command.bridge.BukkitCommandReflection.getCommands;
 
@@ -23,6 +22,7 @@ import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.command.CommandManager;
 import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.minecraft.pluginbase.command.BukkitActor;
+import me.lauriichan.minecraft.pluginbase.command.BukkitCommand;
 import me.lauriichan.minecraft.pluginbase.command.processor.IBukkitCommandProcessor;
 
 public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends BukkitCommandBridge<A> {
@@ -165,10 +165,10 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
             plugin.getServer().getPluginManager().registerEvents(listener, plugin);
         }
         final SimpleCommandMap commandMap = getCommandMap();
-        final PluginCommand pluginCommand = createCommand(definition.name(), plugin);
+        final BukkitCommand pluginCommand = new BukkitCommand(definition.name(), plugin);
         pluginCommand.setAliases(new ArrayList<>(definition.aliases()));
-        pluginCommand.setExecutor(this);
-        pluginCommand.setTabCompleter(this);
+        pluginCommand.executor(this);
+        pluginCommand.completer(this);
         pluginCommand.setDescription(messageManager.translate(definition.description(), Actor.DEFAULT_LANGUAGE));
         commandMap.register(definition.prefix(), pluginCommand);
         return this;

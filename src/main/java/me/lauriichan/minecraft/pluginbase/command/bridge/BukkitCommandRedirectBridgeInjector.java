@@ -1,6 +1,5 @@
 package me.lauriichan.minecraft.pluginbase.command.bridge;
 
-import static me.lauriichan.minecraft.pluginbase.command.bridge.BukkitCommandReflection.createCommand;
 import static me.lauriichan.minecraft.pluginbase.command.bridge.BukkitCommandReflection.getCommandMap;
 import static me.lauriichan.minecraft.pluginbase.command.bridge.BukkitCommandReflection.getCommands;
 
@@ -12,7 +11,6 @@ import java.util.function.BiFunction;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 
@@ -22,6 +20,7 @@ import me.lauriichan.laylib.command.ICommandInjector;
 import me.lauriichan.laylib.command.NodeCommand;
 import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.minecraft.pluginbase.command.BukkitActor;
+import me.lauriichan.minecraft.pluginbase.command.BukkitCommand;
 import me.lauriichan.minecraft.pluginbase.command.processor.IBukkitCommandProcessor;
 
 public final class BukkitCommandRedirectBridgeInjector<A extends BukkitActor<?>> implements ICommandInjector {
@@ -57,10 +56,10 @@ public final class BukkitCommandRedirectBridgeInjector<A extends BukkitActor<?>>
     @Override
     public void inject(final NodeCommand nodeCommand) {
         final SimpleCommandMap commandMap = getCommandMap();
-        final PluginCommand pluginCommand = createCommand(nodeCommand.getName(), plugin);
+        final BukkitCommand pluginCommand = new BukkitCommand(nodeCommand.getName(), plugin);
         pluginCommand.setAliases(new ArrayList<>(nodeCommand.getAliases()));
-        pluginCommand.setExecutor(bridge);
-        pluginCommand.setTabCompleter(bridge);
+        pluginCommand.executor(bridge);
+        pluginCommand.completer(bridge);
         final String description = messageManager.translate(nodeCommand.getDescription(), Actor.DEFAULT_LANGUAGE);
         pluginCommand.setDescription(description == null ? nodeCommand.getDescription() : description);
         commandMap.register(prefix, pluginCommand);
@@ -78,7 +77,7 @@ public final class BukkitCommandRedirectBridgeInjector<A extends BukkitActor<?>>
         names.add(nodeCommand.getName());
         for (final String name : names) {
             org.bukkit.command.Command command = map.remove(name);
-            if (command instanceof PluginCommand && ((PluginCommand) command).getPlugin().equals(plugin)) {
+            if (command instanceof BukkitCommand && ((BukkitCommand) command).getPlugin().equals(plugin)) {
                 command.unregister(commandMap);
             }
             command = map.remove(prefix + ':' + name);
