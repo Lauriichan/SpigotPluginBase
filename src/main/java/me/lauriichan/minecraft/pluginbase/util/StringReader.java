@@ -11,7 +11,7 @@ public class StringReader implements Iterator<Character> {
     public static final char HEX_INDICATOR = '#';
 
     public static boolean isUnquotedCharacter(final char character) {
-        return Character.isWhitespace(character) || character == ESCAPE;
+        return !(Character.isWhitespace(character) || character == ESCAPE || character == DOUBLE_QUOTE || character == SINGLE_QUOTE);
     }
 
     public static boolean isQuote(final char character) {
