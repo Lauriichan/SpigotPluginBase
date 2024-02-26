@@ -1,8 +1,8 @@
 package me.lauriichan.maven.pluginbase.transformer;
 
-import static me.lauriichan.maven.pluginbase.util.SourceTransformerUtils.importClass;
-import static me.lauriichan.maven.pluginbase.util.SourceTransformerUtils.removeAnnotation;
-import static me.lauriichan.maven.pluginbase.util.SourceTransformerUtils.removeMethod;
+import static me.lauriichan.maven.sourcemod.api.SourceTransformerUtils.importClass;
+import static me.lauriichan.maven.sourcemod.api.SourceTransformerUtils.removeAnnotation;
+import static me.lauriichan.maven.sourcemod.api.SourceTransformerUtils.removeMethod;
 
 import java.util.List;
 import java.util.Objects;
