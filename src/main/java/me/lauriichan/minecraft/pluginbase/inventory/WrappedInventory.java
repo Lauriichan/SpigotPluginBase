@@ -2,7 +2,6 @@ package me.lauriichan.minecraft.pluginbase.inventory;
 
 import java.util.Objects;
 
-import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;

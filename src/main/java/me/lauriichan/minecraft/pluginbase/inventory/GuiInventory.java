@@ -3,7 +3,6 @@ package me.lauriichan.minecraft.pluginbase.inventory;
 import java.util.Objects;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
