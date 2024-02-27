@@ -13,6 +13,8 @@ public interface IConfigExtension extends IExtension {
     default boolean isModified() {
         return false;
     }
+    
+    default void onPropergate(final Configuration configuration) throws Exception {}
 
     default void onLoad(final Configuration configuration) throws Exception {}
 

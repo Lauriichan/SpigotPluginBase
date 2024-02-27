@@ -10,10 +10,11 @@ public final class ConfigWrapper<T extends IConfigExtension> {
 
     public static final int SUCCESS = 0x0;
     public static final int FAIL_IO_LOAD = 0x1;
-    public static final int FAIL_DATA_LOAD = 0x2;
-    public static final int FAIL_DATA_SAVE = 0x3;
-    public static final int FAIL_IO_SAVE = 0x4;
-    public static final int SKIPPED = 0x5;
+    public static final int FAIL_DATA_PROPERGATE = 0x2;
+    public static final int FAIL_DATA_LOAD = 0x3;
+    public static final int FAIL_DATA_SAVE = 0x4;
+    public static final int FAIL_IO_SAVE = 0x5;
+    public static final int SKIPPED = 0x10;
 
     public static boolean isFailedState(final int state) {
         return state != SUCCESS && state != SKIPPED;
@@ -24,7 +25,7 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     }
 
     public static boolean isDataError(final int state) {
-        return state == FAIL_DATA_LOAD || state == FAIL_DATA_SAVE;
+        return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_SAVE;
     }
 
     private final ISimpleLogger logger;
@@ -70,6 +71,13 @@ public final class ConfigWrapper<T extends IConfigExtension> {
             } catch (final Exception exception) {
                 logger.warning("Failed to load configuration from '{0}'!", exception, config.path());
                 return FAIL_IO_LOAD;
+            }
+        } else {
+            try {
+                config.onPropergate(configuration);
+            } catch (final Exception exception) {
+                logger.warning("Failed to propergate configuration data of '{0}'!", exception, config.path());
+                return FAIL_DATA_PROPERGATE;
             }
         }
         try {
