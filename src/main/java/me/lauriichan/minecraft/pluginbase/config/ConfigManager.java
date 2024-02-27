@@ -9,7 +9,7 @@ import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.ConditionConstant;
 
 public final class ConfigManager {
-    
+
     private final Object2ObjectArrayMap<Class<? extends IConfigExtension>, ConfigWrapper<?>> configs = new Object2ObjectArrayMap<>();
 
     public ConfigManager(final BasePlugin<?> plugin) {
@@ -17,16 +17,30 @@ public final class ConfigManager {
             return;
         }
         plugin.extension(IConfigExtension.class, true).callInstances(extension -> {
-           configs.put(extension.getClass(), new ConfigWrapper<>(plugin, extension));
+            configs.put(extension.getClass(), new ConfigWrapper<>(plugin, extension));
         });
     }
-    
+
     public Object2IntMap<ConfigWrapper<?>> reload() {
+        return reload(false);
+    }
+
+    public Object2IntMap<ConfigWrapper<?>> reload(boolean force) {
         Object2IntArrayMap<ConfigWrapper<?>> results = new Object2IntArrayMap<>(configs.size());
-        configs.values().forEach(wrapper -> results.put(wrapper, wrapper.reload(false)));
+        configs.values().forEach(wrapper -> results.put(wrapper, wrapper.reload(force)));
         return Object2IntMaps.unmodifiable(results);
     }
-    
+
+    public Object2IntMap<ConfigWrapper<?>> save() {
+        return save(false);
+    }
+
+    public Object2IntMap<ConfigWrapper<?>> save(boolean force) {
+        Object2IntArrayMap<ConfigWrapper<?>> results = new Object2IntArrayMap<>(configs.size());
+        configs.values().forEach(wrapper -> results.put(wrapper, wrapper.save(force)));
+        return Object2IntMaps.unmodifiable(results);
+    }
+
     public ObjectCollection<ConfigWrapper<?>> wrappers() {
         return configs.values();
     }
@@ -51,5 +65,4 @@ public final class ConfigManager {
         return configs.containsKey(type);
     }
 
-    
 }
