@@ -20,6 +20,10 @@ public final class ConfigManager {
             configs.put(extension.getClass(), new ConfigWrapper<>(plugin, extension));
         });
     }
+    
+    public int amount() {
+        return configs.size();
+    }
 
     public Object2IntMap<ConfigWrapper<?>> reload() {
         return reload(false);
