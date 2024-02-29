@@ -5,6 +5,7 @@ import static me.lauriichan.maven.sourcemod.api.SourceTransformerUtils.removeAnn
 import static me.lauriichan.maven.sourcemod.api.SourceTransformerUtils.removeMethod;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.jboss.forge.roaster.model.Type;
@@ -180,17 +181,27 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                         loadBuilder.append("Double");
                         primitive = true;
                     }
+                } else if (type.isType(List.class)) {
+                    loadBuilder.append("List");
+                } else if (type.isType(Map.class)) {
+                    loadBuilder.append("Map");
                 }
-                loadBuilder.append("(\"").append(configField.name()).append('"');
+                loadBuilder.append("(\"").append(configField.name).append('"');
                 if (!primitive) {
-                    loadBuilder.append(", ").append(type.getQualifiedName()).append(".class");
+                    if (type.isType(List.class)) {
+                        loadBuilder.append(", ").append(type.getTypeArguments().get(0).getQualifiedName()).append(".class");
+                    } else if (type.isType(Map.class)) {
+                        loadBuilder.append(", ").append(type.getTypeArguments().get(0).getQualifiedName()).append(".class").append(", ")
+                            .append(type.getTypeArguments().get(1).getQualifiedName()).append(".class");
+                    } else {
+                        loadBuilder.append(", ").append(type.getQualifiedName()).append(".class");
+                    }
                 }
-                loadBuilder.append(", generatedDefault$").append(field.getName());
-                if (method != null) {
-                    loadBuilder.append(')');
+                if (!type.isType(List.class) && !type.isType(Map.class)) {
+                    loadBuilder.append(", generatedDefault$").append(field.getName());
                 }
                 loadBuilder.append(");");
-                saveBuilder.append("configuration.set(\"").append(configField.name()).append("\", this.").append(field.getName())
+                saveBuilder.append("configuration.set(\"").append(configField.name).append("\", this.").append(field.getName())
                     .append(");");
             }
         }
