@@ -197,7 +197,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
         if (needObjectsImport) {
             importClass(clazz, Objects.class);
         }
-        method = clazz.getMethod("isModified", Configuration.class);
+        method = clazz.getMethod("isModified");
         if (method != null) {
             method.setName("user$isModified");
             method.setPrivate();
