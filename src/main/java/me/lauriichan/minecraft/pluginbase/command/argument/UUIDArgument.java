@@ -19,14 +19,16 @@ public class UUIDArgument implements IArgumentType<UUID> {
     private final List<UUID> selection;
 
     public UUIDArgument(IArgumentMap map) {
-        UUID[] uuids = map.get("collection", UUID[].class).get();
+        String[] uuids = map.get("collection", String[].class).get();
         if (uuids == null || uuids.length == 0) {
             this.selection = Collections.emptyList();
             this.collection = false;
             return;
         }
         ObjectArrayList<UUID> list = new ObjectArrayList<>();
-        Collections.addAll(list, uuids);
+        for (String uuid : uuids) {
+            list.add(uuidFromString(uuid));
+        }
         this.selection = Collections.unmodifiableList(list);
         this.collection = true;
     }
