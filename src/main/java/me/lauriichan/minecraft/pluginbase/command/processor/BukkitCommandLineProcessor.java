@@ -36,7 +36,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
     private BiFunction<BukkitActor<?>, NodeArgument, String> argumentToStringMapper;
 
     public BukkitCommandLineProcessor(final int suggestionAmount) {
-        this.suggestionAmount = Math.max(1, suggestionAmount);
+        this.suggestionAmount = Math.max(0, suggestionAmount);
     }
 
     @Override
