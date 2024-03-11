@@ -1,14 +1,12 @@
 package me.lauriichan.minecraft.pluginbase.inventory.item;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -16,10 +14,15 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import me.lauriichan.minecraft.pluginbase.util.StringUtil;
+import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 
 public final class ItemEditor {
 
-    public static ItemEditor ofTexture(final String texture) {
+    public static ItemEditor ofHead(final OfflinePlayer player) {
+        return new ItemEditor(Material.PLAYER_HEAD).setHeadTexture(player);
+    }
+
+    public static ItemEditor ofHead(final String texture) {
         return new ItemEditor(Material.PLAYER_HEAD).setHeadTexture(texture);
     }
 
@@ -60,10 +63,11 @@ public final class ItemEditor {
     }
 
     public ItemEditor applyItemMeta(final Consumer<ItemMeta> consumer) {
-        if (itemMeta != null) {
-            consumer.accept(itemMeta);
-            itemStack.setItemMeta(itemMeta);
+        if (itemMeta == null) {
+            return this;
         }
+        consumer.accept(itemMeta);
+        itemStack.setItemMeta(itemMeta);
         return this;
     }
 
@@ -73,21 +77,26 @@ public final class ItemEditor {
 
     // Name
     public String getName() {
-        if (itemMeta == null || !itemMeta.hasDisplayName()) {
+        if (itemMeta == null || itemMeta.hasDisplayName()) {
             return "";
         }
         return itemMeta.getDisplayName();
     }
 
+    public ItemEditor setName(final String name) {
+        if (itemMeta == null) {
+            return this;
+        }
+        itemMeta.setDisplayName(BukkitColor.apply(name));
+        return this;
+    }
+
     public String getItemName() {
         return StringUtil.formatPascalCase(itemStack.getType().getKey().getKey().replace('_', ' '));
     }
-
-    public ItemEditor setName(final String name) {
-        if (itemMeta != null) {
-            itemMeta.setDisplayName(name);
-        }
-        return this;
+    
+    public ColoredNameEditor name() {
+        return new ColoredNameEditor(this);
     }
 
     // Lore
@@ -98,25 +107,15 @@ public final class ItemEditor {
         return itemMeta.getLore();
     }
 
-    public ItemEditor setLore(final Collection<String> lines) {
-        if (itemMeta != null) {
-            itemMeta.setLore(new ArrayList<>(lines));
-        }
-        return this;
-    }
-
     public ItemEditor setLore(final List<String> lines) {
         if (itemMeta != null) {
             itemMeta.setLore(lines);
         }
         return this;
     }
-
-    public ItemEditor setLore(final String... lines) {
-        if (itemMeta != null) {
-            itemMeta.setLore(Arrays.asList(lines));
-        }
-        return this;
+    
+    public ColoredLoreEditor lore() {
+        return new ColoredLoreEditor(this);
     }
 
     // Durability
@@ -173,6 +172,14 @@ public final class ItemEditor {
             return this;
         }
         HeadProfileProvider.PROVIDER.setTexture((SkullMeta) itemMeta, texture);
+        return this;
+    }
+
+    public ItemEditor setHeadTexture(final OfflinePlayer player) {
+        if (!isHead()) {
+            return this;
+        }
+        HeadProfileProvider.PROVIDER.setTexture((SkullMeta) itemMeta, player);
         return this;
     }
 
@@ -298,6 +305,10 @@ public final class ItemEditor {
         if (itemMeta != null) {
             itemStack.setItemMeta(itemMeta);
         }
+        return itemStack;
+    }
+    
+    public ItemStack asRawItemStack() {
         return itemStack;
     }
 

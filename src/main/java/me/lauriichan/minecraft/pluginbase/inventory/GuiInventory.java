@@ -9,11 +9,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import me.lauriichan.minecraft.pluginbase.util.BukkitColor;
 import me.lauriichan.minecraft.pluginbase.util.attribute.Attributable;
+import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 
 public final class GuiInventory extends Attributable implements InventoryHolder, IGuiInventory {
 
+    private static final ChestSize[] SIZES = ChestSize.values();
     private static final HumanEntity[] EMPTY_ENTITIES = {};
 
     private final ThreadLocal<Boolean> inventoryChanged = ThreadLocal.withInitial(() -> false);
@@ -23,8 +24,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
 
     private String title;
 
-    private int rowSize;
-    private int columnAmount;
+    private int columnAmount, rowAmount;
     private int size;
 
     private ChestSize chestSize;
@@ -37,9 +37,9 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         }
         this.title = Objects.requireNonNull(title);
         this.size = type.getDefaultSize();
-        this.rowSize = IGuiInventory.getRowSize(type);
-        this.columnAmount = size / rowSize;
-        this.chestSize = rowSize == 9 ? ChestSize.values()[columnAmount - 1] : null;
+        this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
+        this.rowAmount = inventory.getSize() / columnAmount;
+        this.chestSize = columnAmount == 9 && rowAmount < 7 ? SIZES[rowAmount - 1] : null;
         internalUpdate();
     }
 
@@ -48,8 +48,8 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         this.chestSize = Objects.requireNonNull(chestSize);
         this.type = InventoryType.CHEST;
         this.size = chestSize.inventorySize();
-        this.rowSize = 9;
-        this.columnAmount = size / rowSize;
+        this.columnAmount = 9;
+        this.rowAmount = size / columnAmount;
         internalUpdate();
     }
 
@@ -64,6 +64,21 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     }
 
     @Override
+    public IGuiInventoryUpdater updater() {
+        return new GuiInventoryUpdater(this);
+    }
+
+    final boolean apply(GuiInventoryUpdater updater) {
+        boolean title = applyTitle(updater.title());
+        boolean type = applyChestSize(updater.chestSize()) || applyType(updater.type());
+        if (!title && !type) {
+            return false;
+        }
+        internalUpdate();
+        return true;
+    }
+
+    @Override
     public IHandler getHandler() {
         return handler;
     }
@@ -74,21 +89,28 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             return false;
         }
         this.handler = handler;
-        handler.onInit(this);
+        handler.onSet(this);
         return true;
     }
 
     @Override
     public boolean setType(final InventoryType type) {
+        if (!applyType(type)) {
+            return false;
+        }
+        internalUpdate();
+        return true;
+    }
+
+    private boolean applyType(InventoryType type) {
         if (type == null || this.type == type || !type.isCreatable()) {
             return false;
         }
         this.type = type == InventoryType.ENDER_CHEST ? InventoryType.CHEST : type;
         this.size = type.getDefaultSize();
-        this.rowSize = IGuiInventory.getRowSize(type);
-        this.columnAmount = size / rowSize;
-        this.chestSize = rowSize == 9 ? ChestSize.values()[columnAmount - 1] : null;
-        internalUpdate();
+        this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
+        this.rowAmount = inventory.getSize() / columnAmount;
+        this.chestSize = columnAmount == 9 && rowAmount < 7 ? SIZES[rowAmount - 1] : null;
         return true;
     }
 
@@ -99,15 +121,22 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
 
     @Override
     public boolean setChestSize(final ChestSize chestSize) {
+        if (!applyChestSize(chestSize)) {
+            return false;
+        }
+        internalUpdate();
+        return true;
+    }
+
+    private boolean applyChestSize(final ChestSize chestSize) {
         if (chestSize == null || this.chestSize == chestSize) {
             return false;
         }
         this.chestSize = chestSize;
         this.size = chestSize.inventorySize();
-        this.rowSize = 9;
-        this.columnAmount = size / rowSize;
+        this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
+        this.rowAmount = inventory.getSize() / columnAmount;
         this.type = InventoryType.CHEST;
-        internalUpdate();
         return true;
     }
 
@@ -118,11 +147,18 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
 
     @Override
     public boolean setTitle(final String title) {
+        if (!applyTitle(title)) {
+            return false;
+        }
+        internalUpdate();
+        return true;
+    }
+
+    private boolean applyTitle(String title) {
         if (title == null || this.title.equals(title)) {
             return false;
         }
         this.title = title;
-        internalUpdate();
         return true;
     }
 
@@ -158,15 +194,31 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             handler.onUpdate(this, false);
         }
     }
-
+    
     @Override
-    public int getRowSize() {
-        return rowSize;
+    public void open(HumanEntity entity) {
+        Inventory inv = inventory;
+        entity.openInventory(inv);
+        if (handler != null && inv != inventory) {
+            inventoryChanged.set(true);
+            try {
+                entity.closeInventory();
+                entity.openInventory(inventory);
+            } finally {
+                inventoryChanged.set(false);
+            }
+            handler.onUpdate(this, false);
+        }
     }
 
     @Override
     public int getColumnAmount() {
         return columnAmount;
+    }
+
+    @Override
+    public int getRowAmount() {
+        return rowAmount;
     }
 
     @Override
@@ -180,7 +232,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     }
 
     @Override
-    public ItemStack get(final int index) {
+    public ItemStack getItem(final int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException(index);
         }
@@ -197,6 +249,14 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             throw new IndexOutOfBoundsException(index);
         }
         inventory.setItem(index, itemStack);
+    }
+
+    @Override
+    public void clear(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException(index);
+        }
+        inventory.clear(index);
     }
 
 }

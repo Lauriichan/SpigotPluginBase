@@ -1,41 +1,49 @@
 package me.lauriichan.minecraft.pluginbase.util.math;
 
 public final class InventoryMath {
-
-    public static final int DEFAULT_ROW_SIZE = 9;
+    
+    public static final int DEFAULT_COLUMN_AMOUNT = 9;
 
     private InventoryMath() {
         throw new UnsupportedOperationException();
     }
 
-    public static int toSlot(final int row, final int column) {
-        return toSlot(row, column, DEFAULT_ROW_SIZE);
-    }
+    public static record Slot(int row, int column) {
 
-    public static int toSlot(final int row, final int column, final int rowSize) {
-        return row * rowSize + column;
-    }
-
-    public static int checkSlot(int row, int column, final int rowSize, final int columnAmount) throws IndexOutOfBoundsException {
-        while (row >= rowSize) {
-            column++;
-            row -= rowSize;
+        public int toSlot(int columnAmount) {
+            return InventoryMath.toSlot(column, row, columnAmount);
         }
-        if (column >= columnAmount) {
-            throw new IndexOutOfBoundsException(columnAmount);
+
+        public int slotInBounds(int columnAmount, int size) {
+            return InventoryMath.slotInBounds(column, row, columnAmount, size);
         }
-        return row * rowSize + column;
+
+        public boolean isValid(int columnAmount, int size) {
+            return InventoryMath.isValid(column, row, columnAmount, size);
+        }
+
     }
 
-    public static int[] fromSlot(final int slot) {
-        return fromSlot(slot, DEFAULT_ROW_SIZE);
+    public static Slot of(int slot, int columnAmount) {
+        int column = slot % columnAmount;
+        int row = Math.floorDiv(slot - column, columnAmount);
+        return new Slot(row, column);
     }
 
-    public static int[] fromSlot(final int slot, final int rowSize) {
-        final int[] output = new int[2];
-        output[1] = slot % rowSize;
-        output[0] = (slot - output[1]) / rowSize;
-        return output;
+    public static int toSlot(int row, int column, int columnAmount) {
+        return row * columnAmount + column;
+    }
+    
+    public static boolean isValid(int row, int column, int columnAmount, int size) {
+        return toSlot(row, column, columnAmount) < size;
+    }
+    
+    public static int slotInBounds(int row, int column, int columnAmount, int size) {
+        int slot = toSlot(row, column, columnAmount);
+        if (slot < size) {
+            return slot;
+        }
+        throw new IndexOutOfBoundsException(slot);
     }
 
 }

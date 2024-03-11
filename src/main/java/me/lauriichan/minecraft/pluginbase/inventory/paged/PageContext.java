@@ -22,6 +22,14 @@ public final class PageContext<H extends IInventoryPageExtension<H, P>, P> {
     public IGuiInventory inventory() {
         return inventory;
     }
+    
+    public PagedInventoryHandler<H, P> handler() {
+        return handler;
+    }
+    
+    public void setPage(final Class<? extends H> page) {
+        handler.setPage(inventory, page);
+    }
 
     public void openPage(final Class<? extends H> page) {
         handler.openPage(player, inventory, page);

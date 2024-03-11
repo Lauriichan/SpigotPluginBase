@@ -14,7 +14,7 @@ import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.minecraft.pluginbase.message.component.Component;
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentParser;
-import me.lauriichan.minecraft.pluginbase.util.BukkitColor;
+import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class BukkitActor<P extends CommandSender> extends Actor<P> {

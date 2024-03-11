@@ -10,7 +10,9 @@ import org.bukkit.inventory.ItemStack;
 
 public interface IHandler {
 
-    default void onInit(final IGuiInventory inventory) {}
+    default void onSet(final IGuiInventory inventory) {}
+
+    default void onInit(final HumanEntity entity, final IGuiInventory inventory) {}
 
     default void onUpdate(final IGuiInventory inventory, final boolean changed) {}
 
@@ -35,33 +37,33 @@ public interface IHandler {
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickDrop(entity, inventory, stack = inventory.get(slot), slot, stack.getAmount());
+            return onClickDrop(entity, inventory, stack = inventory.getItem(slot), slot, stack.getAmount());
         case DROP_ONE_SLOT:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickDrop(entity, inventory, inventory.get(slot), slot, 1);
+            return onClickDrop(entity, inventory, inventory.getItem(slot), slot, 1);
         case PICKUP_ALL:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickPickup(entity, inventory, stack = inventory.get(slot), slot, stack.getAmount(), true);
+            return onClickPickup(entity, inventory, stack = inventory.getItem(slot), slot, stack.getAmount(), true);
         case PICKUP_HALF:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickPickup(entity, inventory, stack = inventory.get(slot), slot, stack.getAmount() / 2, true);
+            return onClickPickup(entity, inventory, stack = inventory.getItem(slot), slot, stack.getAmount() / 2, true);
         case PICKUP_ONE:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickPickup(entity, inventory, stack = inventory.get(slot), slot, 1, true);
+            return onClickPickup(entity, inventory, stack = inventory.getItem(slot), slot, 1, true);
         case PICKUP_SOME:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
             int amount = event.getCursor().getMaxStackSize() - event.getCursor().getAmount();
-            if (amount > (stack = inventory.get(slot)).getAmount()) {
+            if (amount > (stack = inventory.getItem(slot)).getAmount()) {
                 amount = stack.getAmount();
             }
             return onClickPickup(entity, inventory, stack, slot, amount, true);
@@ -80,17 +82,17 @@ public interface IHandler {
                 return false;
             }
             return onClickPlace(entity, inventory, event.getCursor(), slot,
-                (stack = inventory.get(slot)).getMaxStackSize() - inventory.get(slot).getAmount());
+                (stack = inventory.getItem(slot)).getMaxStackSize() - inventory.getItem(slot).getAmount());
         case SWAP_WITH_CURSOR:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickSwap(entity, inventory, inventory.get(slot), event.getCursor(), slot);
+            return onClickSwap(entity, inventory, inventory.getItem(slot), event.getCursor(), slot);
         case HOTBAR_SWAP:
             if (event.getClickedInventory() != inventory.getInventory()) {
                 return false;
             }
-            return onClickSwap(entity, inventory, inventory.get(slot), event.getCurrentItem(), slot);
+            return onClickSwap(entity, inventory, inventory.getItem(slot), event.getCurrentItem(), slot);
         case MOVE_TO_OTHER_INVENTORY:
             if (event.getClickedInventory() == inventory.getInventory()) {
                 return onClickPickup(entity, inventory, event.getCurrentItem(), event.getSlot(), event.getCurrentItem().getAmount(), false);

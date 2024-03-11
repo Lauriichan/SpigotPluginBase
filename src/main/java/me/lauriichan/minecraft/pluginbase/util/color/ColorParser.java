@@ -1,4 +1,4 @@
-package me.lauriichan.minecraft.pluginbase.util;
+package me.lauriichan.minecraft.pluginbase.util.color;
 
 import java.awt.Color;
 

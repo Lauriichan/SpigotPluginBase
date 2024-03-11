@@ -3,7 +3,7 @@ package me.lauriichan.minecraft.pluginbase.message.component;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import me.lauriichan.minecraft.pluginbase.util.ColorParser;
+import me.lauriichan.minecraft.pluginbase.util.color.ColorParser;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;

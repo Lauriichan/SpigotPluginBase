@@ -139,6 +139,14 @@ public abstract class PagedInventoryHandler<H extends IInventoryPageExtension<H,
     /*
      * Page handling
      */
+    
+    public final boolean setPage(final IGuiInventory inventory, final Class<? extends H> page) {
+        if (!hasPage(page)) {
+            return false;
+        }
+        inventory.attrClass(PAGE_PROPERTY, page);
+        return true;
+    }
 
     protected final H currentPageFor(final P player, final IGuiInventory inventory) {
         final Class<? extends H> currentPage = inventory.attrClass(PAGE_PROPERTY, handlerType);

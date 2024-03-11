@@ -7,24 +7,30 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public final class WrappedInventory implements IGuiInventory {
+    
+    private static final ChestSize[] SIZES = ChestSize.values();
 
     private final Inventory inventory;
 
     private final ChestSize chestSize;
 
-    private final int rowSize;
-    private final int columnAmount;
+    private final int columnAmount, rowAmount;
 
     public WrappedInventory(final Inventory inventory) {
         this.inventory = Objects.requireNonNull(inventory);
-        this.rowSize = IGuiInventory.getRowSize(inventory.getType());
-        this.columnAmount = inventory.getSize() / rowSize;
-        this.chestSize = rowSize == 9 && columnAmount < 7 ? ChestSize.values()[columnAmount - 1] : null;
+        this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
+        this.rowAmount = inventory.getSize() / columnAmount;
+        this.chestSize = columnAmount == 9 && rowAmount < 7 ? SIZES[rowAmount - 1] : null;
     }
 
     @Override
     public Inventory getInventory() {
         return inventory;
+    }
+
+    @Override
+    public IGuiInventoryUpdater updater() {
+        return NOPInventoryUpdater.NOP;
     }
 
     @Override
@@ -71,13 +77,13 @@ public final class WrappedInventory implements IGuiInventory {
     public void update() {}
 
     @Override
-    public int getRowSize() {
-        return rowSize;
-    }
-
-    @Override
     public int getColumnAmount() {
         return columnAmount;
+    }
+    
+    @Override
+    public int getRowAmount() {
+        return rowAmount;
     }
 
     @Override
@@ -91,7 +97,7 @@ public final class WrappedInventory implements IGuiInventory {
     }
 
     @Override
-    public ItemStack get(final int index) {
+    public ItemStack getItem(final int index) {
         if (index < 0 || index >= inventory.getSize()) {
             throw new IndexOutOfBoundsException(index);
         }
@@ -108,6 +114,14 @@ public final class WrappedInventory implements IGuiInventory {
             throw new IndexOutOfBoundsException(index);
         }
         inventory.setItem(index, itemStack);
+    }
+    
+    @Override
+    public void clear(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= inventory.getSize()) {
+            throw new IndexOutOfBoundsException(index);
+        }
+        inventory.clear(index);
     }
 
 }
