@@ -47,7 +47,7 @@ public final class Property<T> {
     final void save(Configuration configuration) {
         Configuration section = configuration.getConfiguration(path, true);
         section.set("description", comment);
-        io.write(configuration, "value", value);
+        io.write(section, "value", value);
     }
 
 }
