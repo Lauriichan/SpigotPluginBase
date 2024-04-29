@@ -112,7 +112,7 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
             throw new IllegalArgumentException("The class '" + resolveFromClassPath(type.getName()) + "' can not be casted to '" + typeName + "'");
         }
         final ISimpleLogger logger = plugin.logger();
-        logger.info("Processing extension '{0}'", typeName);
+        logger.debug("Processing extension '{0}'", typeName);
         final IDataSource source = plugin.resource(ExtensionProcessor.extensionPath(typeName));
         if (!source.exists() || !source.isReadable()) {
             this.extensions = Collections.emptyList();
@@ -133,11 +133,11 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
                     }
                     final Class<?> clazz = ClassUtil.findClass(resolveToClassPath(line));
                     if (clazz == null) {
-                        logger.warning("Couldn't find classs '{0}'", line);
+                        logger.debug("Couldn't find classs '{0}'", line);
                         continue;
                     }
                     if (!type.isAssignableFrom(clazz)) {
-                        logger.warning("Class '{0}' is not assignable from '{1}'", clazz.getName(), typeName);
+                        logger.debug("Class '{0}' is not assignable from '{1}'", clazz.getName(), typeName);
                         continue;
                     }
                     final Class<? extends T> extensionClazz = clazz.asSubclass(type);
@@ -147,7 +147,7 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
                         for (final ExtensionCondition condition : conditions) {
                             if (map.set(condition.name()) && map.value(condition.name()) != condition.condition()
                                 || !map.set(condition.name()) && !condition.activeByDefault()) {
-                                logger.info(
+                                logger.debug(
                                     "Extension implementation '{0}' for extension '{1}' is disabled because condition '{2}' is not set to '{3}'",
                                     extensionClazz.getName(), typeName, condition.name(), condition.condition());
                                 continue readLoop;
@@ -155,7 +155,7 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
                         }
                     }
                     if (extensions == null) {
-                        logger.info("Found extension '{0}'", extensionClazz.getName());
+                        logger.debug("Found extension '{0}'", extensionClazz.getName());
                         extensionClasses.add(extensionClazz);
                         continue;
                     }
@@ -163,24 +163,24 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
                     try {
                         extension = ReflectionUtil.createInstanceThrows(extensionClazz, plugin);
                     } catch (Throwable exp) {
-                        logger.warning("Failed to load instance '{0}' for extension '{1}'", exp, extensionClazz.getName(), typeName);
+                        logger.debug("Failed to load instance '{0}' for extension '{1}'", exp, extensionClazz.getName(), typeName);
                         continue;
                     }
                     if (extension == null) {
-                        logger.warning("Failed to load instance '{0}' for extension '{1}'", extensionClazz.getName(), typeName);
+                        logger.debug("Failed to load instance '{0}' for extension '{1}'", extensionClazz.getName(), typeName);
                         continue;
                     }
-                    logger.info("Found extension '{0}'", extensionClazz.getName());
+                    logger.debug("Found extension '{0}'", extensionClazz.getName());
                     extensions.add(extension);
                     extensionClasses.add(extensionClazz);
                 }
             } catch (final IOException exp) {
-                logger.warning("Couldn't load instances for extension '{0}'", typeName);
+                logger.debug("Couldn't load instances for extension '{0}'", typeName);
             }
             this.extensions = extensions == null ? Collections.emptyList() : Collections.unmodifiableList(extensions);
             this.extensionClasses = extensionClasses == null ? Collections.emptyList() : Collections.unmodifiableList(extensionClasses);
         }
-        logger.info("Found {1} extension(s) for '{0}'", typeName, this.extensionClasses.size());
+        logger.debug("Found {1} extension(s) for '{0}'", typeName, this.extensionClasses.size());
     }
 
     @Override
