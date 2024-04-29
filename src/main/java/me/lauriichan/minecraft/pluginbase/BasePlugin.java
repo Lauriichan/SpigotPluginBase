@@ -8,11 +8,13 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.logging.Level;
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.lauriichan.laylib.command.ArgumentRegistry;
 import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.laylib.localization.source.AnnotationMessageSource;
@@ -23,6 +25,10 @@ import me.lauriichan.minecraft.pluginbase.ExtensionPoolImpl.ConditionMapImpl;
 import me.lauriichan.minecraft.pluginbase.command.argument.LoggerArgumentProvider;
 import me.lauriichan.minecraft.pluginbase.command.argument.UUIDArgument;
 import me.lauriichan.minecraft.pluginbase.config.ConfigManager;
+import me.lauriichan.minecraft.pluginbase.config.ConfigWrapper;
+import me.lauriichan.minecraft.pluginbase.config.startup.IPropertyIO;
+import me.lauriichan.minecraft.pluginbase.config.startup.Property;
+import me.lauriichan.minecraft.pluginbase.config.startup.StartupConfig;
 import me.lauriichan.minecraft.pluginbase.extension.IConditionMap;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.extension.IExtensionPool;
@@ -35,6 +41,7 @@ import me.lauriichan.minecraft.pluginbase.resource.source.FileDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.PathDataSource;
 import me.lauriichan.minecraft.pluginbase.util.BukkitSimpleLogger;
+import me.lauriichan.minecraft.pluginbase.util.LoggerState;
 
 public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
@@ -50,6 +57,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     private volatile ConditionMapImpl conditionMap;
     
     private volatile ConfigManager configManager;
+    private volatile ConfigWrapper<StartupConfig> startupConfig;
 
     private volatile PagedInventoryRegistry pagedInventoryRegistry;
     
@@ -223,6 +231,36 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     private final void onCoreLoad() throws Throwable {
         messageManager = new MessageManager();
         argumentRegistry = new ArgumentRegistry();
+        setupStartupProperties();
+    }
+    
+    private final void setupStartupProperties() {
+        startupConfig = new ConfigWrapper<StartupConfig>(this, new StartupConfig(list -> {
+            onCoreProperties(list);
+            onPluginProperties(list);
+        }));
+        startupConfig.reload(true);
+    }
+    
+    private final void onCoreProperties(ObjectArrayList<Property<?>> properties) {
+        properties.add(new Property<>("logger.state", "Sets the state of the logger (normal, debug, everything)", IPropertyIO.ofEnum(LoggerState.class), LoggerState.NORMAL, state -> {
+            ISimpleLogger logger = logger();
+            switch(state) {
+            case NORMAL:
+            default:
+                logger.setDebug(false);
+                logger.setTracking(false);
+                break;
+            case DEBUG:
+                logger.setDebug(true);
+                logger.setTracking(false);
+                break;
+            case EVERYTHING:
+                logger.setDebug(true);
+                logger.setTracking(true);
+                break;
+            }
+        }));
     }
 
     private final void onCoreEnable() throws Throwable {
@@ -292,6 +330,8 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     /*
      * Abstraction
      */
+    
+    protected void onPluginProperties(ObjectArrayList<Property<?>> properties) {}
 
     protected void onPluginLoad() throws Throwable {}
 

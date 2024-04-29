@@ -119,6 +119,9 @@ public final class JsonConfigHandler implements IConfigHandler {
             }
             return array;
         }
+        if (object instanceof Enum<?> enumObject) {
+            return IJson.of(enumObject.toString());
+        }
         try {
             return IJson.of(object);
         } catch (IllegalArgumentException e) {

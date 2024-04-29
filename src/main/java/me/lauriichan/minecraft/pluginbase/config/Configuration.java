@@ -240,7 +240,7 @@ public final class Configuration {
         if (object == null || !(object instanceof final Number value)) {
             return fallback;
         }
-        return value.doubleValue();
+        return value;
     }
 
     public boolean isConfiguration(final String pathUri) {

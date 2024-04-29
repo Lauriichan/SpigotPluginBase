@@ -33,7 +33,7 @@ public final class BukkitSimpleLogger extends AbstractSimpleLogger {
 
     @Override
     protected void track(final String message) {
-        logger.fine(message);
+        logger.info("[TRACE] " + message);
     }
 
     @Override
