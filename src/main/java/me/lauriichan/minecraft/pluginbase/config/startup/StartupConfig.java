@@ -6,11 +6,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
-import me.lauriichan.minecraft.pluginbase.config.IConfigExtension;
+import me.lauriichan.minecraft.pluginbase.config.ISingleConfigExtension;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.config.handler.JsonConfigHandler;
 
-public final class StartupConfig implements IConfigExtension {
+public final class StartupConfig implements ISingleConfigExtension {
     
     private final ObjectList<Property<?>> properties;
     

@@ -8,7 +8,6 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.logging.Level;
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
@@ -235,7 +234,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     }
     
     private final void setupStartupProperties() {
-        startupConfig = new ConfigWrapper<StartupConfig>(this, new StartupConfig(list -> {
+        startupConfig = ConfigWrapper.single(this, new StartupConfig(list -> {
             onCoreProperties(list);
             onPluginProperties(list);
         }));

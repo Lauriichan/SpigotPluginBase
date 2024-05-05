@@ -27,24 +27,35 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     public static boolean isDataError(final int state) {
         return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_SAVE;
     }
+    
+    public static <S extends ISingleConfigExtension> ConfigWrapper<S> single(final BasePlugin<?> plugin, final S extension) {
+        return new ConfigWrapper<>(plugin, extension, extension.path());
+    }
 
     private final ISimpleLogger logger;
 
+    private final String path;
+    
     private final T config;
     private final IDataSource source;
     private final IConfigHandler handler;
 
     private volatile long lastTimeModified = -1L;
-
-    public ConfigWrapper(final BasePlugin<?> plugin, final T extension) {
+    
+    public ConfigWrapper(final BasePlugin<?> plugin, final T extension, final String path) {
         this.logger = plugin.logger();
+        this.path = path;
         this.config = Objects.requireNonNull(extension, "Config extension can't be null");
-        this.source = Objects.requireNonNull(plugin.resource(extension.path()), "Couldn't find data source at '" + extension.path() + "'");
+        this.source = Objects.requireNonNull(plugin.resource(path), "Couldn't find data source at '" + path + "'");
         this.handler = Objects.requireNonNull(extension.handler(), "Config handler can't be null");
     }
 
     public T config() {
         return config;
+    }
+    
+    public String path() {
+        return path;
     }
 
     public IDataSource source() {
@@ -69,21 +80,21 @@ public final class ConfigWrapper<T extends IConfigExtension> {
                 handler.load(configuration, source);
                 lastTimeModified = source.lastModified();
             } catch (final Exception exception) {
-                logger.warning("Failed to load configuration from '{0}'!", exception, config.path());
+                logger.warning("Failed to load configuration from '{0}'!", exception, path);
                 return FAIL_IO_LOAD;
             }
         } else {
             try {
                 config.onPropergate(configuration);
             } catch (final Exception exception) {
-                logger.warning("Failed to propergate configuration data of '{0}'!", exception, config.path());
+                logger.warning("Failed to propergate configuration data of '{0}'!", exception, path);
                 return FAIL_DATA_PROPERGATE;
             }
         }
         try {
             config.onLoad(configuration);
         } catch (final Exception exception) {
-            logger.warning("Failed to load configuration data of '{0}'!", exception, config.path());
+            logger.warning("Failed to load configuration data of '{0}'!", exception, path);
             return FAIL_DATA_LOAD;
         }
         if (wipeAfterLoad) {
@@ -92,14 +103,14 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         try {
             config.onSave(configuration);
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration data of '{0}'!", exception, config.path());
+            logger.warning("Failed to save configuration data of '{0}'!", exception, path);
             return FAIL_DATA_SAVE;
         }
         try {
             handler.save(configuration, source);
             lastTimeModified = source.lastModified();
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration to '{0}'!", exception, config.path());
+            logger.warning("Failed to save configuration to '{0}'!", exception, path);
             return FAIL_IO_SAVE;
         }
         return SUCCESS;
@@ -113,14 +124,14 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         try {
             config.onSave(configuration);
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration data of '{0}'!", exception, config.path());
+            logger.warning("Failed to save configuration data of '{0}'!", exception, path);
             return FAIL_DATA_SAVE;
         }
         try {
             handler.save(configuration, source);
             lastTimeModified = source.lastModified();
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration to '{0}'!", exception, config.path());
+            logger.warning("Failed to save configuration to '{0}'!", exception, path);
             return FAIL_IO_SAVE;
         }
         return SUCCESS;

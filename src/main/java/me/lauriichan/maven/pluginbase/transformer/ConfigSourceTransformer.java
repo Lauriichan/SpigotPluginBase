@@ -22,6 +22,7 @@ import me.lauriichan.minecraft.pluginbase.config.Config;
 import me.lauriichan.minecraft.pluginbase.config.ConfigValue;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigExtension;
+import me.lauriichan.minecraft.pluginbase.config.ISingleConfigExtension;
 import me.lauriichan.minecraft.pluginbase.extension.Extension;
 
 public class ConfigSourceTransformer implements ISourceTransformer {
@@ -64,7 +65,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             validators.put(value, method);
         }
 
-        if (!clazz.hasAnnotation(Extension.class)) {
+        if (!clazz.hasAnnotation(Extension.class) && clazz.hasInterface(ISingleConfigExtension.class)) {
             clazz.addAnnotation(Extension.class);
             importClass(clazz, Extension.class);
         }

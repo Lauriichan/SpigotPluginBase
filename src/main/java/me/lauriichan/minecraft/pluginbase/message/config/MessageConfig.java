@@ -3,11 +3,11 @@ package me.lauriichan.minecraft.pluginbase.message.config;
 import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
-import me.lauriichan.minecraft.pluginbase.config.IConfigExtension;
+import me.lauriichan.minecraft.pluginbase.config.ISingleConfigExtension;
 import me.lauriichan.minecraft.pluginbase.message.provider.SimpleMessage;
 import me.lauriichan.minecraft.pluginbase.message.provider.SimpleMessageProvider;
 
-public abstract class MessageConfig implements IConfigExtension {
+public abstract class MessageConfig implements ISingleConfigExtension {
 
     protected void loadMessages(final Configuration configuration, final String language, final MessageProvider[] providers) {
         for (final MessageProvider provider : providers) {
