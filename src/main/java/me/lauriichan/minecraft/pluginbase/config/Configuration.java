@@ -10,13 +10,17 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 public final class Configuration {
 
     private final Object2ObjectLinkedOpenHashMap<String, Object> map = new Object2ObjectLinkedOpenHashMap<>();
-
+    
     /*
      * Keys
      */
 
     public Set<String> keySet() {
         return map.keySet();
+    }
+    
+    public boolean isEmpty() {
+        return map.isEmpty();
     }
 
     /*
