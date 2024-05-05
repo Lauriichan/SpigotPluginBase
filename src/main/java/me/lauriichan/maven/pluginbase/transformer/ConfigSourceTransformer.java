@@ -35,7 +35,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             return false;
         }
         return !classSource.isAbstract() && !classSource.isRecord() && classSource.hasAnnotation(Config.class)
-            && classSource.hasInterface(IConfigExtension.class);
+            && (classSource.hasInterface(IConfigExtension.class) || classSource.hasInterface(ISingleConfigExtension.class));
     }
 
     @Override
