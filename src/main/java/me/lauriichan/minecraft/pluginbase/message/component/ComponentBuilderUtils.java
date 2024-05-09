@@ -94,7 +94,7 @@ final class ComponentBuilderUtils {
             }
             appender = component.newText().startColor(start.color()).endColor(end.color()).colorAmount(colorAmount);
         }
-        if (last == 0 || last + 1 != content.length()) {
+        if (last == 0 || last != content.length()) {
             component.appendText(content.substring(last, content.length())).finish();
         }
         return builder;
