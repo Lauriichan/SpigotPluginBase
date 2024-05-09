@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 
 import me.lauriichan.laylib.command.ActionMessage;
 import me.lauriichan.laylib.command.Actor;
@@ -12,8 +11,7 @@ import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.Key;
 import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.laylib.localization.MessageProvider;
-import me.lauriichan.minecraft.pluginbase.message.component.Component;
-import me.lauriichan.minecraft.pluginbase.message.component.ComponentParser;
+import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
 import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 import net.md_5.bungee.api.ChatMessageType;
 
@@ -49,12 +47,9 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
     public void sendMessage(final String message) {
         handle.sendMessage(BukkitColor.apply(message));
     }
-    
+
     public void sendBarMessage(final String message) {
-        if (!(handle instanceof Player player)) {
-            return;
-        }
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, ComponentParser.parse(message));
+        ComponentBuilder.create().appendContent(message).send(this, ChatMessageType.ACTION_BAR);
     }
 
     public void sendBarMessage(IMessage message, Key... placeholders) {
@@ -71,7 +66,7 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
 
     @Override
     public void sendActionMessage(final ActionMessage message) {
-        Component.of(message).send(this);
+        ComponentBuilder.create().appendContent(message).send(this);
     }
 
     @Override
