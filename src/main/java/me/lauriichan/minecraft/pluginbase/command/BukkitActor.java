@@ -12,7 +12,6 @@ import me.lauriichan.laylib.localization.Key;
 import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
-import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class BukkitActor<P extends CommandSender> extends Actor<P> {
@@ -45,7 +44,7 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
 
     @Override
     public void sendMessage(final String message) {
-        handle.sendMessage(BukkitColor.apply(message));
+        ComponentBuilder.create().appendContent(message).send(handle);
     }
 
     public void sendBarMessage(final String message) {

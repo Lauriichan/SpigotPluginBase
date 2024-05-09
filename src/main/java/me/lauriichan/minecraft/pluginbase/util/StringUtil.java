@@ -19,4 +19,40 @@ public final class StringUtil {
         return builder.toString();
     }
 
+    public static String prettyFormat(String string) {
+        StringBuilder output = new StringBuilder();
+        int indent = 0;
+        for (int i = 0; i < string.length(); i++) {
+            char ch = string.charAt(i);
+            if (ch == '{' || ch == '[' || ch == '(') {
+                repeat(output.append(ch).append('\n'), ++indent, ' ');
+                continue;
+            }
+            if (ch == ',') {
+                repeat(output.append(ch).append('\n'), indent, ' ');
+                output.append(ch);
+                continue;
+            }
+            if (ch == '}' || ch == ']' || ch == ')') {
+                repeat(output.append('\n'), --indent, ' ');
+                output.append(ch);
+                continue;
+            }
+            if (ch == '§') {
+                ch = '&';
+            }
+            output.append(ch);
+        }
+        return output.toString();
+    }
+
+    private static void repeat(StringBuilder builder, int amount, char ch) {
+        if (amount <= 0) {
+            return;
+        }
+        for (int i = 0; i < amount; i++) {
+            builder.append(ch);
+        }
+    }
+
 }

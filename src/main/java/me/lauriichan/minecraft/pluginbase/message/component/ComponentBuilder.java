@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.laylib.command.ActionMessage;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.IMessage;
@@ -117,6 +118,9 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
     }
 
     public final ObjectList<BaseComponent> buildComponentList() {
+        if (builders.isEmpty()) {
+            return ObjectLists.emptyList();
+        }
         ObjectArrayList<BaseComponent> list = new ObjectArrayList<>(builders.size());
         for (SubComponentBuilder<?> builder : builders) {
             list.add(builder.buildComponent());
@@ -206,7 +210,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         }
 
         public P finish() {
-            if (text == null) {
+            if (text == null || text.isEmpty()) {
                 return parent;
             }
             if (text.isBlank() || (start == null && end == null)) {
@@ -222,16 +226,16 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                 parent.newComponent().text(text).color(start == null ? end : start).finish();
                 return parent;
             }
-            if (colorAmount <= 0) {
-                colorAmount = text.length();
-            }
             LinearColor start = new LinearColor(this.start);
             LinearColor interpolation = start.calcInterpolationDifference(this.end);
             int characters = text.replaceAll("\\s+", "").length();
-            int charsPerStep = Math.floorDiv(characters, colorAmount - 1);
+            if (colorAmount <= 0 || colorAmount > characters) {
+                colorAmount = characters;
+            }
+            int charsPerStep = Math.floorDiv(characters, colorAmount);
             int remainingCharacters = characters - (charsPerStep * colorAmount);
             int currentChar = 0;
-            double charMax = characters;
+            double charMax = Math.max(characters - 1, 1); // Prevent divided by 0
             char[] chars = text.toCharArray();
             if (charsPerStep == 1 && remainingCharacters == 0) {
                 SubComponentBuilder<?> builder = parent.newComponent();
@@ -241,8 +245,10 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                         builder.appendText(Character.toString(ch));
                         continue;
                     }
-                    builder = builder.text(Character.toString(ch)).color(interpolation.toInterpolatedColor(start, ++currentChar / charMax))
-                        .finish().newComponent();
+                    if (!builder.isEmpty()) {
+                        builder.finish();
+                    }
+                    builder = parent.newComponent().text(Character.toString(ch)).color(interpolation.toInterpolatedColor(start, currentChar++ / charMax));
                 }
                 if (!builder.isEmpty()) {
                     builder.finish();

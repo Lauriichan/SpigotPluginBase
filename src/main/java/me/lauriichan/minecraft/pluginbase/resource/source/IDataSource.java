@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public interface IDataSource {
 
@@ -70,7 +72,20 @@ public interface IDataSource {
      * @throws IOException if an I/O error occurs
      */
     default BufferedWriter openWriter() throws IOException {
-        return new BufferedWriter(new OutputStreamWriter(openWritableStream()));
+        return openWriter(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Open a buffered writer for the source
+     * 
+     * @param  charset     the charset to use
+     * 
+     * @return             the buffered writer
+     * 
+     * @throws IOException if an I/O error occurs
+     */
+    default BufferedWriter openWriter(Charset charset) throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(openWritableStream(), charset));
     }
 
     /**
@@ -101,7 +116,20 @@ public interface IDataSource {
      * @throws IOException if an I/O error occurs
      */
     default BufferedReader openReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(openReadableStream()));
+        return openReader(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Open a buffered reader for the source
+     * 
+     * @param  charset     the charset to use
+     * 
+     * @return             the buffered reader
+     * 
+     * @throws IOException if an I/O error occurs
+     */
+    default BufferedReader openReader(Charset charset) throws IOException {
+        return new BufferedReader(new InputStreamReader(openReadableStream(), charset));
     }
 
 }

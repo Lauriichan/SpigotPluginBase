@@ -25,20 +25,20 @@ final class ComponentBuilderUtils {
         int last = 0;
         for (int i = content.indexOf('&'); i != -1; i = content.indexOf('&', i + 1)) {
             if (appender != null) {
-                last = i;
                 appender.text(content.substring(last, i)).finish();
+                appender = null;
                 component = component.finish().newComponent().copyFrom(component);
             } else {
                 component.appendText(content.substring(last, i));
             }
             if (content.charAt(i + 1) != '#') {
                 // Apply formatting
-                ChatColor format = ChatColor.getByChar(content.charAt(i + 2));
+                ChatColor format = ChatColor.getByChar(content.charAt(i + 1));
                 if (format == null) {
                     continue;
                 }
                 Formatting formatting = Formatting.find(format);
-                last = i;
+                last = i + 2;
                 if (!component.isEmpty()) {
                     component = component.finish().newComponent().copyFrom(component);
                 }
@@ -55,7 +55,7 @@ final class ComponentBuilderUtils {
                 if (result == null) {
                     continue;
                 }
-                last = i;
+                last = i + result.length();
                 if (!component.isEmpty()) {
                     component = component.finish().newComponent().copyFrom(component);
                 }
@@ -73,19 +73,24 @@ final class ComponentBuilderUtils {
             }
             int colorEnd = end.length() + i + 4 + start.length;
             int colorAmount = -1;
+            int offsetIdx = 0;
             if (content.charAt(colorEnd) != ']') {
                 if (content.charAt(colorEnd) != '/') {
                     continue;
                 }
-                int idx = content.indexOf(']', colorEnd);
-                if (idx == -1) {
+                offsetIdx = content.indexOf(']', colorEnd);
+                if (offsetIdx == -1) {
                     continue;
                 }
                 try {
-                    colorAmount = Integer.parseInt(content.substring(colorEnd + 1, idx));
-                } catch(NumberFormatException nfe) {
+                    colorAmount = Integer.parseInt(content.substring(colorEnd + 1, offsetIdx));
+                } catch (NumberFormatException nfe) {
                     continue;
                 }
+            }
+            last = i + colorEnd + offsetIdx + 1;
+            if (!component.isEmpty()) {
+                component = component.finish().newComponent().copyFrom(component);
             }
             appender = component.newText().startColor(start.color()).endColor(end.color()).colorAmount(colorAmount);
         }

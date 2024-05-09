@@ -2,6 +2,7 @@ package me.lauriichan.minecraft.pluginbase.message.component;
 
 import java.awt.Color;
 
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.MessageProvider;
@@ -186,7 +187,10 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
     @Override
     public BaseComponent buildComponent() {
         TextComponent output = component.duplicate();
-        output.setExtra(buildComponentList());
+        ObjectList<BaseComponent> list = buildComponentList();
+        if (!list.isEmpty()) {
+            output.setExtra(list);
+        }
         return output;
     }
 
