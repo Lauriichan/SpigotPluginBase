@@ -20,7 +20,33 @@ final class ComponentBuilderUtils {
     }
 
     public static <S extends ComponentBuilder<?, ?>> SubComponentBuilder<S> append(SubComponentBuilder<S> builder, String content) {
+        String[] lines = content.split("\n");
+        if (lines.length > 1) {
+            SubComponentBuilder<?> component = builder.newComponent();
+            SubComponentBuilder<?> lastComponent = component;
+            for (int i = 0; i < lines.length; i++) {
+                if (lines[i].isBlank()) {
+                    component.newComponent().copyFrom(lastComponent).text("\n").finish();
+                    continue;
+                }
+                lastComponent = appendLine(component, lastComponent, lines[i]);
+                if (i + 1 != lines.length) {
+                    lastComponent.appendText("\n");
+                }
+            }
+            component.finish();
+            return builder;
+        }
+        appendLine(builder, null, content);
+        return builder;
+    }
+
+    private static <S extends ComponentBuilder<?, ?>> SubComponentBuilder<?> appendLine(SubComponentBuilder<S> builder,
+        SubComponentBuilder<?> copyFormatting, String content) {
         SubComponentBuilder<?> component = builder.newComponent();
+        if (copyFormatting != null) {
+            component.copyFrom(copyFormatting);
+        }
         TextAppender<?> appender = null;
         int last = 0;
         for (int i = content.indexOf('&'); i != -1; i = content.indexOf('&', i + 1)) {
@@ -44,6 +70,9 @@ final class ComponentBuilderUtils {
                 }
                 if (formatting != null) {
                     component.apply(formatting);
+                    if (formatting == Formatting.RESET) {
+                        component = component.finish().newComponent();
+                    }
                 } else {
                     component.color(format);
                 }
@@ -55,7 +84,7 @@ final class ComponentBuilderUtils {
                 if (result == null) {
                     continue;
                 }
-                last = i + result.length();
+                last = i + 2 + result.length();
                 if (!component.isEmpty()) {
                     component = component.finish().newComponent().copyFrom(component);
                 }
@@ -71,10 +100,10 @@ final class ComponentBuilderUtils {
             if (end == null) {
                 continue;
             }
-            int colorEnd = end.length() + i + 4 + start.length;
+            int colorEnd = end.length() + i + 4 + start.length();
             int colorAmount = -1;
-            int offsetIdx = 0;
-            if (content.charAt(colorEnd) != ']') {
+            int offsetIdx = colorEnd;
+            if (content.length() + 1 != colorEnd && content.charAt(colorEnd) != ']') {
                 if (content.charAt(colorEnd) != '/') {
                     continue;
                 }
@@ -88,16 +117,23 @@ final class ComponentBuilderUtils {
                     continue;
                 }
             }
-            last = i + colorEnd + offsetIdx + 1;
+            last = offsetIdx + 1;
             if (!component.isEmpty()) {
                 component = component.finish().newComponent().copyFrom(component);
             }
             appender = component.newText().startColor(start.color()).endColor(end.color()).colorAmount(colorAmount);
         }
         if (last == 0 || last != content.length()) {
-            component.appendText(content.substring(last, content.length())).finish();
+            if (appender != null) {
+                appender.text(content.substring(last, content.length())).finish();
+                component.finish();
+            } else {
+                component.appendText(content.substring(last, content.length())).finish();
+            }
+        } else {
+            component.finish();
         }
-        return builder;
+        return component;
     }
 
     private static ColorResult parseColor(String string, int startIndex) {
@@ -109,7 +145,7 @@ final class ComponentBuilderUtils {
                 hex.append((char) (ch + 32));
                 continue;
             }
-            if (ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9') {
+            if ((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) {
                 hex.append(ch);
                 continue;
             }

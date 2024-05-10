@@ -72,6 +72,15 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         return this;
     }
 
+    public SubComponentBuilder<P> appendChar(char ch) {
+        String compText = component.getText();
+        if (compText == null) {
+            compText = "";
+        }
+        component.setText(compText + ch);
+        return this;
+    }
+
     public String text() {
         return component.getText();
     }
@@ -175,6 +184,13 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
     }
 
     public SubComponentBuilder<P> copyFrom(SubComponentBuilder<?> component) {
+        return copyFrom(component, false);
+    }
+
+    public SubComponentBuilder<P> copyFrom(SubComponentBuilder<?> component, boolean copyReset) {
+        if (component.component.isReset() && !copyReset) {
+            return this;
+        }
         this.component.copyFormatting(component.component);
         return this;
     }

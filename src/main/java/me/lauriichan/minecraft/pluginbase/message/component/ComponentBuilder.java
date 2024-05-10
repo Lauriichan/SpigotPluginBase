@@ -234,8 +234,8 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             }
             int charsPerStep = Math.floorDiv(characters, colorAmount);
             int remainingCharacters = characters - (charsPerStep * colorAmount);
-            int currentChar = 0;
-            double charMax = Math.max(characters - 1, 1); // Prevent divided by 0
+            int colorCur = 0;
+            double colorMax = Math.max(colorAmount - 1, 1); // Prevent divided by 0
             char[] chars = text.toCharArray();
             if (charsPerStep == 1 && remainingCharacters == 0) {
                 SubComponentBuilder<?> builder = parent.newComponent();
@@ -248,14 +248,48 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                     if (!builder.isEmpty()) {
                         builder.finish();
                     }
-                    builder = parent.newComponent().text(Character.toString(ch)).color(interpolation.toInterpolatedColor(start, currentChar++ / charMax));
+                    builder = parent.newComponent().text(Character.toString(ch)).color(interpolation.toInterpolatedColor(start, colorCur++ / colorMax));
                 }
                 if (!builder.isEmpty()) {
                     builder.finish();
                 }
                 return parent;
             }
-            throw new IllegalStateException("Found remaining characters: " + remainingCharacters);
+            float charPart = remainingCharacters == 0 ? 0 : (remainingCharacters / (float) colorAmount);
+            int charsInPart = 0;
+            double charCounter = 0;
+            boolean first = true;
+            SubComponentBuilder<?> builder = parent.newComponent();
+            for (int i = 0; i < chars.length; i++) {
+                char ch = chars[i];
+                if (Character.isWhitespace(ch)) {
+                    builder.appendText(Character.toString(ch));
+                    continue;
+                }
+                if (first) {
+                    first = false;
+                    if (!builder.isEmpty()) {
+                        builder = builder.finish().newComponent();
+                    }
+                    builder.color(interpolation.toInterpolatedColor(start, colorCur++ / colorMax));
+                }
+                if (charsInPart >= charsPerStep && charCounter < 1d) {
+                    builder = builder.finish().newComponent().color(interpolation.toInterpolatedColor(start, colorCur++ / colorMax));
+                    first = false;
+                    charsInPart = 0;
+                }
+                builder.appendChar(ch);
+                charsInPart++;
+                if (charCounter >= 1d) {
+                    charCounter -= 1d;
+                } else {
+                    charCounter += charPart;
+                }
+            }
+            if (!builder.isEmpty()) {
+                builder.finish();
+            }
+            return parent;
         }
 
     }

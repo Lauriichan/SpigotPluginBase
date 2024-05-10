@@ -7,7 +7,7 @@ public record LinearColor(double red, double green, double blue) {
     private static float CONST_1_OVER_2_4 = 1f / 2.4f;
 
     public static int fromLinear(double value) {
-        return (int) Math.floor((value <= 0.0031308d ? value * 12.92d : 1.055d * Math.pow(value, CONST_1_OVER_2_4) - 0.055d) * 255d);
+        return Math.max(Math.min((int) Math.floor((value <= 0.0031308d ? value * 12.92d : 1.055d * Math.pow(value, CONST_1_OVER_2_4) - 0.055d) * 255d), 255), 0);
     }
 
     public static double toLinear(int value) {

@@ -5,7 +5,7 @@ import java.util.function.BiFunction;
 import org.bukkit.command.CommandSender;
 
 import me.lauriichan.laylib.command.CommandManager;
-import me.lauriichan.laylib.localization.MessageManager;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.command.BukkitActor;
 import me.lauriichan.minecraft.pluginbase.command.processor.IBukkitCommandProcessor;
 
@@ -14,9 +14,9 @@ final class BukkitCommandRedirectBridge<A extends BukkitActor<?>> extends Bukkit
     private final String prefix;
 
     public BukkitCommandRedirectBridge(final IBukkitCommandProcessor processor, final CommandManager commandManager,
-        final MessageManager messageManager, final String prefix,
-        final BiFunction<CommandSender, MessageManager, A> actorBuilder) {
-        super(processor, commandManager, messageManager, actorBuilder);
+        final BasePlugin<?> plugin, final String prefix,
+        final BiFunction<CommandSender, BasePlugin<?>, A> actorBuilder) {
+        super(processor, commandManager, plugin, actorBuilder);
         this.prefix = prefix + ':';
     }
 

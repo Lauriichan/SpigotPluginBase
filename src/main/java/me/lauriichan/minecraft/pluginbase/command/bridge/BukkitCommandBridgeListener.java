@@ -16,7 +16,7 @@ import org.bukkit.event.server.ServerCommandEvent;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.command.CommandManager;
 import me.lauriichan.laylib.command.CommandProcess;
-import me.lauriichan.laylib.localization.MessageManager;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.command.BukkitActor;
 
 final class BukkitCommandBridgeListener implements Listener {
@@ -26,11 +26,11 @@ final class BukkitCommandBridgeListener implements Listener {
     public static final String SUGGESTION_COMMAND = "/suggestion";
 
     private final CommandManager commandManager;
-    private final MessageManager messageManager;
+    private final BasePlugin<?> plugin;
 
-    public BukkitCommandBridgeListener(final CommandManager commandManager, final MessageManager messageManager) {
+    public BukkitCommandBridgeListener(final CommandManager commandManager, final BasePlugin<?> plugin) {
         this.commandManager = commandManager;
-        this.messageManager = messageManager;
+        this.plugin = plugin;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -41,7 +41,7 @@ final class BukkitCommandBridgeListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        commandManager.handleProcessInput(new BukkitActor<>(player, messageManager), process, event.getMessage(), false);
+        commandManager.handleProcessInput(new BukkitActor<>(player, plugin), process, event.getMessage(), false);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -52,7 +52,7 @@ final class BukkitCommandBridgeListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        final BukkitActor<Player> actor = new BukkitActor<>(player, messageManager);
+        final BukkitActor<Player> actor = new BukkitActor<>(player, plugin);
         final String[] args = event.getMessage().split(" ");
         if (CANCEL_COMMAND.equalsIgnoreCase(args[0])) {
             commandManager.cancelProcess(actor);
@@ -76,7 +76,7 @@ final class BukkitCommandBridgeListener implements Listener {
         if (process == null) {
             return;
         }
-        final BukkitActor<CommandSender> actor = new BukkitActor<>(event.getSender(), messageManager);
+        final BukkitActor<CommandSender> actor = new BukkitActor<>(event.getSender(), plugin);
         event.setCancelled(true);
         final String[] args = event.getCommand().split(" ");
         if (CANCEL_COMMAND.equalsIgnoreCase(args[0])) {

@@ -21,6 +21,7 @@ import org.bukkit.plugin.Plugin;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.command.CommandManager;
 import me.lauriichan.laylib.localization.MessageManager;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.command.BukkitActor;
 import me.lauriichan.minecraft.pluginbase.command.BukkitCommand;
 import me.lauriichan.minecraft.pluginbase.command.processor.IBukkitCommandProcessor;
@@ -83,27 +84,26 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
 
     private static final String[] EMPTY_ARGS = {};
 
-    private final Plugin plugin;
-
     private final CommandDefinition definition;
 
     private final BukkitCommandBridgeListener listener;
+
+    private final MessageManager messageManager;
 
     private volatile String fallbackCommand = "help";
     private volatile boolean injected = false;
 
     public BukkitCommandInjectableBridge(final IBukkitCommandProcessor processor, final CommandManager commandManager,
-        final MessageManager messageManager, final Plugin plugin, final CommandDefinition definition) {
-        this(processor, commandManager, messageManager, plugin, definition, null);
+        final BasePlugin<?> plugin, final CommandDefinition definition) {
+        this(processor, commandManager, plugin, definition, null);
     }
 
     public BukkitCommandInjectableBridge(final IBukkitCommandProcessor processor, final CommandManager commandManager,
-        final MessageManager messageManager, final Plugin plugin, final CommandDefinition definition,
-        final BiFunction<CommandSender, MessageManager, A> actorBuilder) {
-        super(processor, commandManager, messageManager, actorBuilder);
-        this.plugin = plugin;
+        final BasePlugin<?> plugin, final CommandDefinition definition, final BiFunction<CommandSender, BasePlugin<?>, A> actorBuilder) {
+        super(processor, commandManager, plugin, actorBuilder);
         this.definition = definition;
-        this.listener = processor.requiresListener() ? new BukkitCommandBridgeListener(commandManager, messageManager) : null;
+        this.listener = processor.requiresListener() ? new BukkitCommandBridgeListener(commandManager, plugin) : null;
+        this.messageManager = plugin.messageManager();
     }
 
     @Override

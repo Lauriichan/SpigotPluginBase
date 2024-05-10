@@ -9,15 +9,29 @@ import me.lauriichan.laylib.command.ActionMessage;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.Key;
-import me.lauriichan.laylib.localization.MessageManager;
 import me.lauriichan.laylib.localization.MessageProvider;
+import me.lauriichan.laylib.logger.ISimpleLogger;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class BukkitActor<P extends CommandSender> extends Actor<P> {
+    
+    private final BasePlugin<?> plugin;
+    private final ISimpleLogger logger;
 
-    public BukkitActor(final P handle, final MessageManager messageManager) {
-        super(handle, messageManager);
+    public BukkitActor(final P handle, final BasePlugin<?> plugin) {
+        super(handle, plugin.messageManager());
+        this.plugin = plugin;
+        this.logger = plugin.logger();
+    }
+    
+    public ISimpleLogger logger() {
+        return logger;
+    }
+    
+    public BasePlugin<?> plugin() {
+        return plugin;
     }
 
     @Override
@@ -44,6 +58,9 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
 
     @Override
     public void sendMessage(final String message) {
+        if (logger.isDebug()) {
+            logger.debug("Message to {0}: '{1}'", handle.getName(), message);
+        }
         ComponentBuilder.create().appendContent(message).send(handle);
     }
 
