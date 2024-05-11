@@ -10,7 +10,6 @@ import me.lauriichan.laylib.command.ActionMessage;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.MessageProvider;
-import me.lauriichan.minecraft.pluginbase.util.LinearColor;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -226,8 +225,8 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                 parent.newComponent().text(text).color(start == null ? end : start).finish();
                 return parent;
             }
-            LinearColor start = new LinearColor(this.start);
-            LinearColor interpolation = start.calcInterpolationDifference(this.end);
+            SimpleColor start = SimpleColor.sRGB(this.start).toOkLab();
+            SimpleColor end = SimpleColor.sRGB(this.end).toOkLab();
             int characters = text.replaceAll("\\s+", "").length();
             if (colorAmount <= 0 || colorAmount > characters) {
                 colorAmount = characters;
@@ -248,7 +247,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                     if (!builder.isEmpty()) {
                         builder.finish();
                     }
-                    builder = parent.newComponent().text(Character.toString(ch)).color(interpolation.toInterpolatedColor(start, colorCur++ / colorMax));
+                    builder = parent.newComponent().text(Character.toString(ch)).color(interpolatedColor(start, end, colorCur++ / colorMax));
                 }
                 if (!builder.isEmpty()) {
                     builder.finish();
@@ -271,10 +270,10 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                     if (!builder.isEmpty()) {
                         builder = builder.finish().newComponent();
                     }
-                    builder.color(interpolation.toInterpolatedColor(start, colorCur++ / colorMax));
+                    builder.color(interpolatedColor(start, end, colorCur++ / colorMax));
                 }
                 if (charsInPart >= charsPerStep && charCounter < 1d) {
-                    builder = builder.finish().newComponent().color(interpolation.toInterpolatedColor(start, colorCur++ / colorMax));
+                    builder = builder.finish().newComponent().color(interpolatedColor(start, end, colorCur++ / colorMax));
                     first = false;
                     charsInPart = 0;
                 }
@@ -291,7 +290,10 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             }
             return parent;
         }
-
+        
+        private Color interpolatedColor(SimpleColor start, SimpleColor end, double percentage) {
+            return start.duplicate().multiply(1d - percentage).add(end.duplicate().multiply(percentage)).asAwtColor();
+        }
     }
 
 }

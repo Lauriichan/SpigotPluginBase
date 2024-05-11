@@ -85,6 +85,9 @@ final class ComponentBuilderUtils {
                     continue;
                 }
                 last = i + 2 + result.length();
+                if (content.charAt(last) == ';') {
+                    last++;
+                }
                 if (!component.isEmpty()) {
                     component = component.finish().newComponent().copyFrom(component);
                 }
@@ -141,11 +144,11 @@ final class ComponentBuilderUtils {
         final StringBuilder hex = new StringBuilder();
         for (int i = startIndex; i < end; i++) {
             final char ch = string.charAt(i);
-            if (ch >= 'A' && ch <= 'Z') {
+            if (ch >= 'A' && ch <= 'F') {
                 hex.append((char) (ch + 32));
                 continue;
             }
-            if ((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) {
+            if ((ch >= 'a' && ch <= 'f') || (ch >= '0' && ch <= '9')) {
                 hex.append(ch);
                 continue;
             }
