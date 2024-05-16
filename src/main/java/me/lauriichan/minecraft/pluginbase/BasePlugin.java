@@ -41,8 +41,43 @@ import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.PathDataSource;
 import me.lauriichan.minecraft.pluginbase.util.BukkitSimpleLogger;
 import me.lauriichan.minecraft.pluginbase.util.LoggerState;
+import me.lauriichan.minecraft.pluginbase.util.reflection.SpigotReflection;
 
 public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
+
+    public static enum PluginPhase {
+
+        LOAD_CORE("load", false),
+        LOAD_PLUGIN("load", true),
+        POST_LOAD_CORE("post-load", false),
+
+        ENABLE_CORE("enable", false),
+        ENABLE_PLUGIN("enable", true),
+        POST_ENABLE_CORE("post-enable", false),
+
+        READY_CORE("ready", false),
+        READY_PLUGIN("ready", true),
+
+        DISABLE_PLUGIN("disable", true),
+        DISABLE_CORE("disable", false);
+
+        private final boolean isPlugin;
+        private final String name;
+
+        private PluginPhase(String name, boolean isPlugin) {
+            this.isPlugin = isPlugin;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isPlugin() {
+            return isPlugin;
+        }
+
+    }
 
     private volatile BukkitSimpleLogger logger;
     private volatile int state = 0;
@@ -50,22 +85,24 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     private volatile Path jarRoot;
     private volatile ResourceManager resourceManager;
 
+    private volatile IBukkitReflection bukkitReflection;
+
     private volatile ArgumentRegistry argumentRegistry;
     private volatile MessageManager messageManager;
 
     private volatile ConditionMapImpl conditionMap;
-    
+
     private volatile ConfigManager configManager;
     private volatile ConfigWrapper<StartupConfig> startupConfig;
 
     private volatile PagedInventoryRegistry pagedInventoryRegistry;
-    
+
     private volatile boolean actDisabled;
-    
+
     protected final void actDisabled(boolean actDisabled) {
         this.actDisabled = actDisabled;
     }
-    
+
     protected final boolean actDisabled() {
         return actDisabled;
     }
@@ -82,12 +119,17 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         try {
             onCoreLoad();
         } catch (final Throwable throwable) {
-            logger.error("Failed to load core part", throwable);
+            onPluginError(PluginPhase.LOAD_CORE, throwable);
         }
         try {
             onPluginLoad();
         } catch (final Throwable throwable) {
-            logger.error("Failed to load plugin part", throwable);
+            onPluginError(PluginPhase.LOAD_PLUGIN, throwable);
+        }
+        try {
+            onCorePostLoad();
+        } catch (final Throwable throwable) {
+            onPluginError(PluginPhase.POST_LOAD_CORE, throwable);
         }
     }
 
@@ -153,17 +195,17 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         try {
             onCoreEnable();
         } catch (final Throwable throwable) {
-            logger.error("Failed to enable core part", throwable);
+            onPluginError(PluginPhase.ENABLE_CORE, throwable);
         }
         try {
             onPluginEnable();
         } catch (final Throwable throwable) {
-            logger.error("Failed to enable plugin part", throwable);
+            onPluginError(PluginPhase.ENABLE_PLUGIN, throwable);
         }
         try {
             onCorePostEnable();
         } catch (final Throwable throwable) {
-            logger.error("Failed to post-enable core part", throwable);
+            onPluginError(PluginPhase.POST_ENABLE_CORE, throwable);
         }
         if (ready) {
             onReady();
@@ -179,12 +221,12 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         try {
             onCoreReady();
         } catch (final Throwable throwable) {
-            logger.error("Failed to ready core part", throwable);
+            onPluginError(PluginPhase.READY_CORE, throwable);
         }
         try {
             onPluginReady();
         } catch (final Throwable throwable) {
-            logger.error("Failed to ready plugin part", throwable);
+            onPluginError(PluginPhase.READY_PLUGIN, throwable);
         }
     }
 
@@ -197,12 +239,12 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         try {
             onPluginDisable();
         } catch (final Throwable throwable) {
-            logger.error("Failed to disable plugin part", throwable);
+            onPluginError(PluginPhase.DISABLE_PLUGIN, throwable);
         }
         try {
             onCoreDisable();
         } catch (final Throwable throwable) {
-            logger.error("Failed to disable core part", throwable);
+            onPluginError(PluginPhase.DISABLE_CORE, throwable);
         }
     }
 
@@ -232,7 +274,11 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         argumentRegistry = new ArgumentRegistry();
         setupStartupProperties();
     }
-    
+
+    private final void onCorePostLoad() throws Throwable {
+        bukkitReflection = createBukkitReflection();
+    }
+
     private final void setupStartupProperties() {
         startupConfig = ConfigWrapper.single(this, new StartupConfig(list -> {
             onCoreProperties(list);
@@ -240,26 +286,27 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         }));
         startupConfig.reload(true);
     }
-    
+
     private final void onCoreProperties(ObjectArrayList<Property<?>> properties) {
-        properties.add(new Property<>("logger.state", "Sets the state of the logger (normal, debug, everything)", IPropertyIO.ofEnum(LoggerState.class), LoggerState.NORMAL, state -> {
-            ISimpleLogger logger = logger();
-            switch(state) {
-            case NORMAL:
-            default:
-                logger.setDebug(false);
-                logger.setTracking(false);
-                break;
-            case DEBUG:
-                logger.setDebug(true);
-                logger.setTracking(false);
-                break;
-            case EVERYTHING:
-                logger.setDebug(true);
-                logger.setTracking(true);
-                break;
-            }
-        }));
+        properties.add(new Property<>("logger.state", "Sets the state of the logger (normal, debug, everything)",
+            IPropertyIO.ofEnum(LoggerState.class), LoggerState.NORMAL, state -> {
+                ISimpleLogger logger = logger();
+                switch (state) {
+                case NORMAL:
+                default:
+                    logger.setDebug(false);
+                    logger.setTracking(false);
+                    break;
+                case DEBUG:
+                    logger.setDebug(true);
+                    logger.setTracking(false);
+                    break;
+                case EVERYTHING:
+                    logger.setDebug(true);
+                    logger.setTracking(true);
+                    break;
+                }
+            }));
     }
 
     private final void onCoreEnable() throws Throwable {
@@ -285,7 +332,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         argumentRegistry.registerArgumentType(UUIDArgument.class);
         onArgumentSetup(argumentRegistry);
     }
-    
+
     private final void setupConfigs() {
         configManager = new ConfigManager(this);
         configManager.reload();
@@ -329,7 +376,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     /*
      * Abstraction
      */
-    
+
     protected void onPluginProperties(ObjectArrayList<Property<?>> properties) {}
 
     protected void onPluginLoad() throws Throwable {}
@@ -344,6 +391,14 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     protected void onArgumentSetup(final ArgumentRegistry registry) {}
 
+    protected void onPluginError(final PluginPhase phase, final Throwable error) {
+        logger.error(String.format("Failed to %s %s part:", phase.getName(), phase.isPlugin() ? "plugin" : "core"), error);
+    }
+
+    protected IBukkitReflection createBukkitReflection() {
+        return new SpigotReflection();
+    }
+
     /*
      * Getter
      */
@@ -354,6 +409,14 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     public final ISimpleLogger logger() {
         return logger;
+    }
+    
+    public final IBukkitReflection bukkitReflection() {
+        return bukkitReflection;
+    }
+    
+    public final ResourceManager resourceManager() {
+        return resourceManager;
     }
 
     public final MessageManager messageManager() {
@@ -367,7 +430,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     public final IConditionMap conditionMap() {
         return conditionMap;
     }
-    
+
     public final ConfigManager configManager() {
         return configManager;
     }

@@ -15,6 +15,10 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Entity;
 
 public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends ComponentBuilder<P, SubComponentBuilder<P>> {
+    
+    public static SubComponentBuilder<?> parse(String richString) {
+        return ComponentBuilder.create().appendContent(richString);
+    }
 
     private final TextComponent component = new TextComponent();
 

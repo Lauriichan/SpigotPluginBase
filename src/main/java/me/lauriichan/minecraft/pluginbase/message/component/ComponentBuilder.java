@@ -21,6 +21,10 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
     public static ComponentBuilder<?, ?> create() {
         return new ComponentBuilderImpl();
     }
+    
+    public static ComponentBuilder<?, ?> parse(String richString) {
+        return new ComponentBuilderImpl().appendContent(richString).finish();
+    }
 
     protected final ObjectArrayList<SubComponentBuilder<?>> builders = new ObjectArrayList<>();
     protected final P parent;
@@ -138,6 +142,10 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
 
     public BaseComponent buildComponent() {
         return new TextComponent(buildComponentArray());
+    }
+    
+    public String asLegacyText() {
+        return BaseComponent.toLegacyText(buildComponentArray());
     }
 
     /*

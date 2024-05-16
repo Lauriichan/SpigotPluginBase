@@ -9,13 +9,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.SimpleCommandMap;
 
-import me.lauriichan.laylib.reflection.ClassUtil;
-import me.lauriichan.minecraft.pluginbase.util.ReflectionUtil;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 
 final class BukkitCommandReflection {
 
     private static final MethodHandle craftServerGetCommandMap = findMethod(
-        ClassUtil.findClass(ReflectionUtil.craftClassPath("CraftServer")), "getCommandMap", SimpleCommandMap.class);
+        BasePlugin.getPlugin(BasePlugin.class).bukkitReflection().findCraftBukkitClass("CraftServer"), "getCommandMap",
+        SimpleCommandMap.class);
     private static final MethodHandle commandMapGetCommands = findGetter(SimpleCommandMap.class, "knownCommands", Map.class);
 
     private BukkitCommandReflection() {
