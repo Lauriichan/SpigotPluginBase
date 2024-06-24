@@ -18,6 +18,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -153,12 +154,19 @@ public class ExtensionProcessor extends AbstractProcessor {
     private void addToPoints(final String name, final TypeElement superElement) {
         final ArrayList<TypeMirror> queue = new ArrayList<>();
         queue.addAll(superElement.getInterfaces());
+        if (!(superElement.getSuperclass() instanceof NoType)) {
+            queue.add(superElement.getSuperclass());
+        }
         while (!queue.isEmpty()) {
             final TypeMirror mirror = queue.remove(0);
             final String typeName = typeHelper.asElement(mirror).toString();
             if (extensionPoints.containsKey(typeName)) {
+                HashSet<String> set = extensionPoints.get(typeName);
+                if (set.contains(name)) {
+                    continue;
+                }
                 log(Kind.NOTE, "Adding ExtensionPoint '%s' for '%s'", typeName, name);
-                extensionPoints.get(typeName).add(name);
+                set.add(name);
                 continue;
             }
             if (mirror == extensionType || !typeHelper.isAssignable(mirror, extensionType)
