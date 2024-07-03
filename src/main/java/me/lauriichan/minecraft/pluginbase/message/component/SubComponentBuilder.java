@@ -2,7 +2,6 @@ package me.lauriichan.minecraft.pluginbase.message.component;
 
 import java.awt.Color;
 
-import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.MessageProvider;
@@ -133,6 +132,10 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         component.setClickEvent(event);
         return this;
     }
+    
+    public ClickEvent click() {
+        return component.getClickEvent();
+    }
 
     public SubComponentBuilder<P> hoverEntity(final org.bukkit.entity.Entity entity) {
         if (entity == null) {
@@ -186,6 +189,10 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         component.setHoverEvent(event);
         return this;
     }
+    
+    public HoverEvent hover() {
+        return component.getHoverEvent();
+    }
 
     public SubComponentBuilder<P> copyFrom(SubComponentBuilder<?> component) {
         return copyFrom(component, false);
@@ -198,6 +205,12 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         this.component.copyFormatting(component.component);
         return this;
     }
+    
+    public SubComponentBuilder<P> loadFrom(SubComponentBuilder<?> component) {
+        this.component.setText(component.component.getText());
+        this.component.copyFormatting(component.component);
+        return this;
+    }
 
     @Override
     public boolean isEmpty() {
@@ -207,9 +220,8 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
     @Override
     public BaseComponent buildComponent() {
         TextComponent output = component.duplicate();
-        ObjectList<BaseComponent> list = buildComponentList();
-        if (!list.isEmpty()) {
-            output.setExtra(list);
+        if (!super.isEmpty()) {
+            output.setExtra(buildComponentList());
         }
         return output;
     }

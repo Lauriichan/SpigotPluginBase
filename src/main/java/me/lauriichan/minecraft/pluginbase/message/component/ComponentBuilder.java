@@ -99,16 +99,15 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
     }
 
     public SubComponentBuilder<S> appendContent(ComponentBuilder<?, ?> builder) {
-        if (builder == null || builder.isEmpty()) {
+        if (builder == null) {
             throw new NullPointerException("Builder can't be null");
         }
-        if (builder.isEmpty()) {
-            throw new IllegalArgumentException("Empty builder, nothing to append");
-        }
         SubComponentBuilder<S> append = newComponent();
+        if (builder.isEmpty()) {
+            return append;
+        }
         if (builder instanceof SubComponentBuilder<?> subBuilder) {
-            append.copyFrom(subBuilder);
-            append.text(subBuilder.text());
+            append.loadFrom(subBuilder);
         }
         for (SubComponentBuilder<?> other : builder.builders) {
             append.newComponent().appendContent(other).finish();

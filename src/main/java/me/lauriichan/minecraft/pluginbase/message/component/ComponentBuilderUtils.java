@@ -9,6 +9,8 @@ import me.lauriichan.minecraft.pluginbase.util.color.ColorParser;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Entity;
+import net.md_5.bungee.api.chat.hover.content.Item;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 final class ComponentBuilderUtils {
@@ -193,6 +195,12 @@ final class ComponentBuilderUtils {
                 hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                     new Text(ComponentBuilder.create().appendContent(hoverAction.getValueAsString()).buildComponentArray()));
                 break;
+            case HOVER_SHOW:
+                if (hoverAction.getValue() instanceof Item item) {
+                    hover = new HoverEvent(HoverEvent.Action.SHOW_ITEM, item);
+                } else if (hoverAction.getValue() instanceof Entity entity) {
+                    hover = new HoverEvent(HoverEvent.Action.SHOW_ITEM, entity);
+                }
             default:
                 break;
             }

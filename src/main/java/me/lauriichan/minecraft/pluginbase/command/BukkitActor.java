@@ -16,7 +16,7 @@ import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class BukkitActor<P extends CommandSender> extends Actor<P> {
-    
+
     private final BasePlugin<?> plugin;
     private final ISimpleLogger logger;
 
@@ -25,11 +25,11 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
         this.plugin = plugin;
         this.logger = plugin.logger();
     }
-    
+
     public ISimpleLogger logger() {
         return logger;
     }
-    
+
     public BasePlugin<?> plugin() {
         return plugin;
     }
@@ -61,11 +61,11 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
         if (logger.isDebug()) {
             logger.debug("Message to {0}: '{1}'", handle.getName(), message);
         }
-        ComponentBuilder.create().appendContent(message).send(handle);
+        ComponentBuilder.create().appendContent(message).finish().send(handle);
     }
 
     public void sendBarMessage(final String message) {
-        ComponentBuilder.create().appendContent(message).send(this, ChatMessageType.ACTION_BAR);
+        ComponentBuilder.create().appendContent(message).finish().send(this, ChatMessageType.ACTION_BAR);
     }
 
     public void sendBarMessage(IMessage message, Key... placeholders) {
@@ -82,7 +82,7 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
 
     @Override
     public void sendActionMessage(final ActionMessage message) {
-        ComponentBuilder.create().appendContent(message).send(this);
+        ComponentBuilder.create().appendContent(message).finish().send(this);
     }
 
     @Override
