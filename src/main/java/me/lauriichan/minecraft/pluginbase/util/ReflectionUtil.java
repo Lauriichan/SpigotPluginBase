@@ -3,8 +3,6 @@ package me.lauriichan.minecraft.pluginbase.util;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 
-import org.bukkit.Bukkit;
-
 import me.lauriichan.laylib.reflection.JavaAccess;
 
 public final class ReflectionUtil {

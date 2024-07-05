@@ -17,7 +17,6 @@ import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.extension.IExtensionPool;
 import me.lauriichan.minecraft.pluginbase.extension.processor.ExtensionProcessor;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
-import me.lauriichan.minecraft.pluginbase.util.ReflectionUtil;
 
 final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T> {
 
@@ -161,7 +160,7 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
                     }
                     T extension = null;
                     try {
-                        extension = ReflectionUtil.createInstanceThrows(extensionClazz, plugin);
+                        extension = plugin.sharedExtensions().get(type);
                     } catch (Throwable exp) {
                         logger.debug("Failed to load instance '{0}' for extension '{1}'", exp, extensionClazz.getName(), typeName);
                         continue;

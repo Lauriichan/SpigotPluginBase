@@ -41,6 +41,8 @@ import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.PathDataSource;
 import me.lauriichan.minecraft.pluginbase.util.BukkitSimpleLogger;
 import me.lauriichan.minecraft.pluginbase.util.LoggerState;
+import me.lauriichan.minecraft.pluginbase.util.instance.SharedInstances;
+import me.lauriichan.minecraft.pluginbase.util.instance.SimpleInstanceInvoker;
 import me.lauriichan.minecraft.pluginbase.util.reflection.SpigotReflection;
 
 public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
@@ -85,6 +87,9 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     private volatile Path jarRoot;
     private volatile ResourceManager resourceManager;
 
+    private volatile SimpleInstanceInvoker pluginInvoker;
+    private volatile SharedInstances<IExtension> sharedExtensions;
+    
     private volatile IBukkitReflection bukkitReflection;
 
     private volatile ArgumentRegistry argumentRegistry;
@@ -115,6 +120,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         loadLogger();
         loadResourceRoot();
         loadResourceManager();
+        loadInstances();
         state = 1;
         try {
             onCoreLoad();
@@ -179,6 +185,14 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         resourceManager.setDefault("jar");
         resourceManager.register("jar", (plugin, path) -> new PathDataSource(plugin.jarRoot().resolveSibling(path)));
         resourceManager.register("data", (plugin, path) -> new FileDataSource(new File(plugin.getDataFolder(), path)));
+    }
+    
+    private final void loadInstances() {
+        pluginInvoker = new SimpleInstanceInvoker();
+        pluginInvoker.addExtra(this);
+        pluginInvoker.addExtra(logger);
+        pluginInvoker.addExtra(resourceManager);
+        sharedExtensions = new SharedInstances<>(pluginInvoker);
     }
 
     @Override
@@ -409,6 +423,14 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     public final ISimpleLogger logger() {
         return logger;
+    }
+    
+    public final SharedInstances<IExtension> sharedExtensions() {
+        return sharedExtensions;
+    }
+    
+    public final SimpleInstanceInvoker pluginInvoker() {
+        return pluginInvoker;
     }
     
     public final IBukkitReflection bukkitReflection() {

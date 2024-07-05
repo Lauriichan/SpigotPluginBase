@@ -103,11 +103,11 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             throw new NullPointerException("Builder can't be null");
         }
         SubComponentBuilder<S> append = newComponent();
-        if (builder.isEmpty()) {
-            return append;
-        }
         if (builder instanceof SubComponentBuilder<?> subBuilder) {
             append.loadFrom(subBuilder);
+        }
+        if (builder.isEmpty()) {
+            return append;
         }
         for (SubComponentBuilder<?> other : builder.builders) {
             append.newComponent().appendContent(other).finish();

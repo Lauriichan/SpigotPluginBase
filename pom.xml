@@ -4,11 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.lauriichan.minecraft</groupId>
     <artifactId>pluginbase</artifactId>
-    <version>1.3.1-MC${server.version}</version>
+    <version>${base.version}-MC${server.version}</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.sourceDir>${project.build.directory}/project-sources</project.sourceDir>
         <laylib.version>0.2.0-SNAPSHOT</laylib.version>
+        <base.version>1.4.0</base.version>
         <server.version>1.20.1</server.version>
     </properties>
     <dependencies>
