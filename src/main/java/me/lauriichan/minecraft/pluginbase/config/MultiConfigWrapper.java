@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 
-public class MultiConfigWrapper<K, T, C extends IConfigExtension, E extends IMultiConfigExtension<K, T, C>> {
+public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extends IMultiConfigExtension<K, T, C>> {
 
     private final Object2ObjectArrayMap<K, ConfigWrapper<C>> configs = new Object2ObjectArrayMap<>();
 

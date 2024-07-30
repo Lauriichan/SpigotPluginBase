@@ -3,6 +3,10 @@ package me.lauriichan.minecraft.pluginbase.config;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 
 public interface IConfigExtension extends IExtension {
+    
+    default String name() {
+        return getClass().getSimpleName();
+    }
 
     IConfigHandler handler();
 

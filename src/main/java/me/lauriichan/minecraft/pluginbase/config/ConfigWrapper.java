@@ -8,13 +8,16 @@ import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
 public final class ConfigWrapper<T extends IConfigExtension> {
 
-    public static final int SUCCESS = 0x0;
-    public static final int FAIL_IO_LOAD = 0x1;
-    public static final int FAIL_DATA_PROPERGATE = 0x2;
-    public static final int FAIL_DATA_LOAD = 0x3;
-    public static final int FAIL_DATA_SAVE = 0x4;
-    public static final int FAIL_IO_SAVE = 0x5;
-    public static final int SKIPPED = 0x10;
+    public static final int SUCCESS = 0x00;
+    public static final int SKIPPED = 0x01;
+    
+    public static final int FAIL_IO_LOAD = 0x11;
+    public static final int FAIL_IO_SAVE = 0x12;
+    
+    public static final int FAIL_DATA_PROPERGATE = 0x21;
+    public static final int FAIL_DATA_LOAD = 0x22;
+    public static final int FAIL_DATA_SAVE = 0x23;
+    public static final int FAIL_DATA_MIGRATE = 0x24;
 
     public static boolean isFailedState(final int state) {
         return state != SUCCESS && state != SKIPPED;
@@ -25,7 +28,7 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     }
 
     public static boolean isDataError(final int state) {
-        return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_SAVE;
+        return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_MIGRATE || state == FAIL_DATA_SAVE;
     }
     
     public static <S extends ISingleConfigExtension> ConfigWrapper<S> single(final BasePlugin<?> plugin, final S extension) {
@@ -33,25 +36,35 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     }
 
     private final ISimpleLogger logger;
+    private final ConfigMigrator migrator;
 
     private final String path;
     
     private final T config;
+    private final Class<T> configType;
+    
     private final IDataSource source;
     private final IConfigHandler handler;
 
     private volatile long lastTimeModified = -1L;
     
+    @SuppressWarnings("unchecked")
     public ConfigWrapper(final BasePlugin<?> plugin, final T extension, final String path) {
         this.logger = plugin.logger();
+        this.migrator = plugin.configMigrator();
         this.path = path;
         this.config = Objects.requireNonNull(extension, "Config extension can't be null");
+        this.configType = (Class<T>) config.getClass();
         this.source = Objects.requireNonNull(plugin.resource(path), "Couldn't find data source at '" + path + "'");
         this.handler = Objects.requireNonNull(extension.handler(), "Config handler can't be null");
     }
 
     public T config() {
         return config;
+    }
+    
+    public Class<T> configType() {
+        return configType;
     }
     
     public String path() {
@@ -83,6 +96,17 @@ public final class ConfigWrapper<T extends IConfigExtension> {
                 logger.warning("Failed to load configuration from '{0}'!", exception, path);
                 return FAIL_IO_LOAD;
             }
+            if (migrator != null) {
+                int version = configuration.getInt("version", 0);
+                if (migrator.needsMigration(configType, version)) {
+                    try {
+                        migrator.migrate(logger, version, configuration, config);
+                    } catch (ConfigMigrationFailedException exception) {
+                        logger.warning("Failed to migrate configuration data of '{0}'!", exception, path);
+                        return FAIL_DATA_MIGRATE;
+                    }
+                }
+            }
         } else {
             try {
                 config.onPropergate(configuration);
@@ -106,6 +130,9 @@ public final class ConfigWrapper<T extends IConfigExtension> {
             logger.warning("Failed to save configuration data of '{0}'!", exception, path);
             return FAIL_DATA_SAVE;
         }
+        if (migrator != null) {
+            configuration.set("version", migrator.getTargetVersion(configType));
+        }
         try {
             handler.save(configuration, source);
             lastTimeModified = source.lastModified();
@@ -126,6 +153,9 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         } catch (final Exception exception) {
             logger.warning("Failed to save configuration data of '{0}'!", exception, path);
             return FAIL_DATA_SAVE;
+        }
+        if (migrator != null) {
+            configuration.set("version", migrator.getTargetVersion(configType));
         }
         try {
             handler.save(configuration, source);

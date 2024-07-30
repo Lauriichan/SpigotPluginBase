@@ -24,6 +24,7 @@ import me.lauriichan.minecraft.pluginbase.ExtensionPoolImpl.ConditionMapImpl;
 import me.lauriichan.minecraft.pluginbase.command.argument.LoggerArgumentProvider;
 import me.lauriichan.minecraft.pluginbase.command.argument.UUIDArgument;
 import me.lauriichan.minecraft.pluginbase.config.ConfigManager;
+import me.lauriichan.minecraft.pluginbase.config.ConfigMigrator;
 import me.lauriichan.minecraft.pluginbase.config.ConfigWrapper;
 import me.lauriichan.minecraft.pluginbase.config.startup.IPropertyIO;
 import me.lauriichan.minecraft.pluginbase.config.startup.Property;
@@ -97,6 +98,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     private volatile ConditionMapImpl conditionMap;
 
+    private volatile ConfigMigrator configMigrator;
     private volatile ConfigManager configManager;
     private volatile ConfigWrapper<StartupConfig> startupConfig;
 
@@ -348,6 +350,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     }
 
     private final void setupConfigs() {
+        configMigrator = new ConfigMigrator(this);
         configManager = new ConfigManager(this);
         configManager.reload();
     }
@@ -451,6 +454,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     public final IConditionMap conditionMap() {
         return conditionMap;
+    }
+
+    public final ConfigMigrator configMigrator() {
+        return configMigrator;
     }
 
     public final ConfigManager configManager() {

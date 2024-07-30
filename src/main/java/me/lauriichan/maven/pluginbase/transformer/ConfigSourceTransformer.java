@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.lauriichan.maven.sourcemod.api.ISourceTransformer;
 import me.lauriichan.minecraft.pluginbase.config.Config;
 import me.lauriichan.minecraft.pluginbase.config.ConfigValue;
+import me.lauriichan.minecraft.pluginbase.config.ConfigValueValidator;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigExtension;
 import me.lauriichan.minecraft.pluginbase.config.ISingleConfigExtension;
@@ -52,17 +53,23 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             configFields.add(new ConfigField(field, field.getAnnotation(ConfigValue.class).getStringValue()));
         }
         
-        Object2ObjectArrayMap<String, MethodSource<JavaClassSource>> validators = new Object2ObjectArrayMap<>();
+        Object2ObjectArrayMap<String, ObjectArrayList<MethodSource<JavaClassSource>>> validators = new Object2ObjectArrayMap<>();
         final List<MethodSource<JavaClassSource>> methods = clazz.getMethods();
         for (final MethodSource<JavaClassSource> method : methods) {
-            if (!method.hasAnnotation(ConfigValue.class) || method.getReturnType().isType(void.class) || method.getReturnType().isType(Void.class)) {
+            if (!method.hasAnnotation(ConfigValueValidator.class) || method.getReturnType().isType(void.class) || method.getReturnType().isType(Void.class)) {
                 continue;
             }
-            String value = method.getAnnotation(ConfigValue.class).getStringValue();
-            if (validators.containsKey(value)) {
-                throw new IllegalStateException("Duplicated validator for field '" + value + "': " + method.getName());
+            String[] values = method.getAnnotation(ConfigValueValidator.class).getStringArrayValue();
+            for (String value : values) {
+                ObjectArrayList<MethodSource<JavaClassSource>> validatorList = validators.get(value);
+                if (validatorList == null) {
+                    validatorList = new ObjectArrayList<>();
+                    validators.put(value, validatorList);
+                } else if(validatorList.contains(method)) {
+                    throw new IllegalStateException("Duplicated field '" + value + "' for validator: " + method.getName());
+                }
+                validatorList.add(method);
             }
-            validators.put(value, method);
         }
 
         if (!clazz.hasAnnotation(Extension.class) && clazz.hasInterface(ISingleConfigExtension.class)) {
@@ -82,6 +89,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
 
         StringBuilder loadBuilder = new StringBuilder();
         StringBuilder saveBuilder = new StringBuilder();
+        StringBuilder propergateBuilder = new StringBuilder();
         loadBuilder.append("""
             @Override
             public void onLoad(Configuration configuration) throws Exception {
@@ -92,21 +100,36 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             public void onSave(Configuration configuration) throws Exception {
                 this.generated$modified0 = false;
             """);
+        propergateBuilder.append("""
+            @Override
+            public void onPropergate(Configuration configuration) throws Exception {
+            """);
 
         ConfigField configField;
         FieldSource<JavaClassSource> field;
-        MethodSource<JavaClassSource> method;
+        ObjectArrayList<MethodSource<JavaClassSource>> validatorList;
+        ObjectArrayList<String> visitedFields = new ObjectArrayList<>();
         boolean needObjectsImport = false;
         for (int index = 0; index < configFields.size(); index++) {
             field = (configField = configFields.get(index)).field();
-            method = validators.get(configField.name());
-            if (method != null) {
-                if (method.getReturnType().isType(field.getType().getQualifiedName())) {
-                    method.setVisibility(Visibility.PRIVATE);
-                    method.setStatic(false);
-                    method.setFinal(true);
-                } else {
-                    method = null;
+            if (visitedFields.contains(configField.name())) {
+                throw new IllegalStateException("Duplicated config field: " + configField.name());
+            }
+            visitedFields.add(configField.name());
+            validatorList = validators.remove(configField.name());
+            if (validatorList != null) {
+                for (int i = 0; i < validatorList.size(); i++) {
+                    MethodSource<JavaClassSource> validator = validatorList.get(i);
+                    if (validator.getReturnType().isType(field.getType().getQualifiedName())) {
+                        validator.setVisibility(Visibility.PRIVATE);
+                        validator.setStatic(false);
+                        validator.setFinal(true);
+                    } else {
+                        validatorList.remove(i--);
+                    }
+                }
+                if (validatorList.isEmpty()) {
+                    validatorList = null;
                 }
             }
             field.setVisibility(Visibility.PRIVATE);
@@ -153,8 +176,10 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                     loadBuilder.append('\n');
                 }
                 loadBuilder.append("this.").append(field.getName()).append(" = ");
-                if (method != null) {
-                    loadBuilder.append(method.getName()).append('(');
+                if (validatorList != null) {
+                    for (MethodSource<JavaClassSource> validator : validatorList) {
+                        loadBuilder.append(validator.getName()).append('(');
+                    }
                 }
                 loadBuilder.append("configuration.get");
                 final Type<JavaClassSource> type = field.getType();
@@ -201,15 +226,22 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 if (!type.isType(List.class) && !type.isType(Map.class)) {
                     loadBuilder.append(", generatedDefault$").append(field.getName());
                 }
+                if (validatorList != null) {
+                    for (int i = 0; i < validatorList.size(); i++) {
+                        loadBuilder.append(')');
+                    }
+                }
                 loadBuilder.append(");");
                 saveBuilder.append("configuration.set(\"").append(configField.name).append("\", this.").append(field.getName())
+                    .append(");");
+                propergateBuilder.append("configuration.set(\"").append(configField.name).append("\", this.generatedDefault$").append(field.getName())
                     .append(");");
             }
         }
         if (needObjectsImport) {
             importClass(clazz, Objects.class);
         }
-        method = clazz.getMethod("isModified");
+        MethodSource<JavaClassSource> method = clazz.getMethod("isModified");
         if (method != null) {
             method.setName("user$isModified");
             method.setPrivate();
@@ -245,6 +277,14 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             saveBuilder.append("\nuser$onSave(configuration);");
         }
         clazz.addMethod(saveBuilder.append("\n}").toString());
+        method = clazz.getMethod("onPropergate", Configuration.class);
+        if (method != null) {
+            method.setName("user$onPropergate");
+            method.setPrivate();
+            removeAnnotation(method, Override.class);
+            propergateBuilder.append("\nuser$onPropergate(configuration);");
+        }
+        clazz.addMethod(propergateBuilder.append("\n}").toString());
     }
 
     private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String content) {
