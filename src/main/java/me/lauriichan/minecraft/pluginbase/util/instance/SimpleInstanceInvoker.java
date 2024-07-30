@@ -54,7 +54,7 @@ public class SimpleInstanceInvoker implements IInstanceInvoker {
     @Override
     public <T> T invoke(Class<T> clazz, Object... arguments) throws Throwable {
         final Object[] extra = this.extraArgumentArray;
-        if (extra == null) {
+        if (extra == null || extra.length == 0) {
             return invoker.invoke(clazz, arguments);
         }
         if (arguments == null || arguments.length == 0) {

@@ -3,6 +3,7 @@ package me.lauriichan.minecraft.pluginbase.util;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 
+import me.lauriichan.laylib.reflection.ClassUtil;
 import me.lauriichan.laylib.reflection.JavaAccess;
 
 public final class ReflectionUtil {
@@ -13,7 +14,7 @@ public final class ReflectionUtil {
 
     @SuppressWarnings("rawtypes")
     public static <T> T createInstance(final Class<T> type, final Object... arguments) {
-        final Constructor[] constructors = type.getConstructors();
+        final Constructor[] constructors = ClassUtil.getConstructors(type);
         if (constructors.length == 0) {
             return null;
         }
@@ -65,9 +66,9 @@ public final class ReflectionUtil {
 
     @SuppressWarnings("rawtypes")
     public static <T> T createInstanceThrows(final Class<T> type, final Object... arguments) throws Throwable {
-        final Constructor[] constructors = type.getConstructors();
+        Constructor[] constructors = ClassUtil.getConstructors(type);
         if (constructors.length == 0) {
-            return null;
+            throw new ReflectiveOperationException("No constructors available");
         }
         final Class[] args = new Class[arguments.length];
         for (int index = 0; index < args.length; index++) {
@@ -106,7 +107,7 @@ public final class ReflectionUtil {
             }
         }
         if (satisfiedArguments == -1) {
-            return null;
+            throw new ReflectiveOperationException("Arguments not satisfied");
         }
         final Object[] argumentArray = new Object[satisfiedArguments];
         for (int index = 0; index < argumentArray.length; index++) {

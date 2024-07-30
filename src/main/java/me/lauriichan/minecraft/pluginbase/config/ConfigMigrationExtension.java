@@ -35,13 +35,11 @@ public abstract class ConfigMigrationExtension<C extends IConfigExtension> imple
      * Utils
      */
     
-    public final void move(Configuration config, String pathA, String pathB) {
+    public final void copy(Configuration config, String pathA, String pathB) {
         if (!config.contains(pathA)) {
             return;
         }
-        Object value = config.get(pathA);
-        config.remove(pathA);
-        config.set(pathB, value);
+        config.set(pathB, config.get(pathA));
     }
 
 }

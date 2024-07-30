@@ -29,7 +29,7 @@ public class SharedInstances<E> {
         instances.remove(clazz);
     }
 
-    public final <T> T get(final Class<T> clazz) {
+    public final <T> T getCached(final Class<T> clazz) {
         E extension = instances.get(clazz);
         if (extension == null) {
             return null;
