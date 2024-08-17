@@ -40,7 +40,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
         this.rowAmount = inventory.getSize() / columnAmount;
         this.chestSize = columnAmount == 9 && rowAmount < 7 ? SIZES[rowAmount - 1] : null;
-        internalUpdate();
+        internalUpdate(false);
     }
 
     public GuiInventory(final String title, final ChestSize chestSize) {
@@ -50,7 +50,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         this.size = chestSize.inventorySize();
         this.columnAmount = 9;
         this.rowAmount = size / columnAmount;
-        internalUpdate();
+        internalUpdate(false);
     }
 
     @Override
@@ -74,7 +74,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         if (!title && !type) {
             return false;
         }
-        internalUpdate();
+        internalUpdate(!type);
         return true;
     }
 
@@ -98,7 +98,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         if (!applyType(type)) {
             return false;
         }
-        internalUpdate();
+        internalUpdate(false);
         return true;
     }
 
@@ -124,7 +124,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         if (!applyChestSize(chestSize)) {
             return false;
         }
-        internalUpdate();
+        internalUpdate(false);
         return true;
     }
 
@@ -150,7 +150,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         if (!applyTitle(title)) {
             return false;
         }
-        internalUpdate();
+        internalUpdate(true);
         return true;
     }
 
@@ -167,17 +167,22 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         return title;
     }
 
-    private void internalUpdate() {
+    private void internalUpdate(boolean titleOnlyChanged) {
         HumanEntity[] entities = EMPTY_ENTITIES;
         if (inventory != null) {
             entities = inventory.getViewers().toArray(HumanEntity[]::new);
+        }
+        if (titleOnlyChanged) {
+            for (HumanEntity entity : entities) {
+                entity.getOpenInventory().setTitle(BukkitColor.apply(title));
+            }
+            return;
         }
         inventory = chestSize != null ? Bukkit.createInventory(this, chestSize.inventorySize(), BukkitColor.apply(title))
             : Bukkit.createInventory(this, type, BukkitColor.apply(title));
         inventoryChanged.set(true);
         try {
             for (final HumanEntity entity : entities) {
-                entity.closeInventory();
                 entity.openInventory(inventory);
             }
         } finally {

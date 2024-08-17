@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.sourceDir>${project.build.directory}/project-sources</project.sourceDir>
         <laylib.version>0.2.0-SNAPSHOT</laylib.version>
-        <base.version>1.4.0</base.version>
+        <base.version>1.4.1</base.version>
         <server.version>1.20.1</server.version>
     </properties>
     <dependencies>
