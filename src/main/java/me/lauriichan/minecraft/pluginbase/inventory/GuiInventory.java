@@ -23,6 +23,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     private volatile Inventory inventory;
 
     private String title;
+    private boolean updateTitleOnOpen = false;
 
     private int columnAmount, rowAmount;
     private int size;
@@ -168,15 +169,17 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     }
 
     private void internalUpdate(boolean titleOnlyChanged) {
+        updateTitleOnOpen = titleOnlyChanged;
         HumanEntity[] entities = EMPTY_ENTITIES;
         if (inventory != null) {
             entities = inventory.getViewers().toArray(HumanEntity[]::new);
-        }
-        if (titleOnlyChanged) {
-            for (HumanEntity entity : entities) {
-                entity.getOpenInventory().setTitle(BukkitColor.apply(title));
+            if (titleOnlyChanged) {
+                String updatedTitle = BukkitColor.apply(title);
+                for (HumanEntity entity : entities) {
+                    GuiInventoryReflection.updateTitle(entity, inventory, updatedTitle);
+                }
+                return;
             }
-            return;
         }
         inventory = chestSize != null ? Bukkit.createInventory(this, chestSize.inventorySize(), BukkitColor.apply(title))
             : Bukkit.createInventory(this, type, BukkitColor.apply(title));
@@ -213,6 +216,9 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
                 inventoryChanged.set(false);
             }
             handler.onUpdate(this, false);
+        }
+        if (updateTitleOnOpen) {
+            GuiInventoryReflection.updateTitle(entity, inv, title);
         }
     }
 

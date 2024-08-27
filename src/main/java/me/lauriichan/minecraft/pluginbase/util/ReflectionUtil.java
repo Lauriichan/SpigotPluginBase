@@ -3,6 +3,7 @@ package me.lauriichan.minecraft.pluginbase.util;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 
+import me.lauriichan.laylib.reflection.AccessFailedException;
 import me.lauriichan.laylib.reflection.ClassUtil;
 import me.lauriichan.laylib.reflection.JavaAccess;
 
@@ -61,7 +62,7 @@ public final class ReflectionUtil {
         for (int index = 0; index < argumentArray.length; index++) {
             argumentArray[index] = arguments[indices[index]];
         }
-        return type.cast(JavaAccess.instance(matching, argumentArray));
+        return type.cast(JavaAccess.PLATFORM.invoke(matching, argumentArray));
     }
 
     @SuppressWarnings("rawtypes")
@@ -113,7 +114,11 @@ public final class ReflectionUtil {
         for (int index = 0; index < argumentArray.length; index++) {
             argumentArray[index] = arguments[indices[index]];
         }
-        return type.cast(JavaAccess.instanceThrows(matching, argumentArray));
+        try {
+            return type.cast(JavaAccess.PLATFORM.invoke(matching, argumentArray));
+        } catch(AccessFailedException e) {
+            throw e.getCause();
+        }
     }
 
 }
