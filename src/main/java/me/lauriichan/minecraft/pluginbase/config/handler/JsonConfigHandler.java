@@ -25,8 +25,8 @@ public final class JsonConfigHandler implements IConfigHandler {
 
     public static final JsonConfigHandler JSON = new JsonConfigHandler();
     
-    public static final String KEY_SERIALIZE_TYPE = "__serial_type";
-    public static final String KEY_SERIALIZE_DATA = "__serial_data";
+    public static final String KEY_SERIALIZE_TYPE = "type";
+    public static final String KEY_SERIALIZE_DATA = "data";
 
     private final IOManager ioManager;
     
@@ -136,15 +136,16 @@ public final class JsonConfigHandler implements IConfigHandler {
 
     @SuppressWarnings("unchecked")
     private IJson<?> serialize(final Object object) throws SerializationException {
-        if (object instanceof final List<?> list) {
+        if (object instanceof List) {
+            List<?> list = (List<?>) object;
             final JsonArray array = new JsonArray();
             for (final Object elem : list) {
                 array.add(serialize(elem));
             }
             return array;
         }
-        if (object instanceof Enum<?> enumObject) {
-            return IJson.of(enumObject.toString());
+        if (object instanceof Enum) {
+            return IJson.of(((Enum<?>) object).toString());
         }
         try {
             return IJson.of(object);

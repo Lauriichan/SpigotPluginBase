@@ -1,14 +1,29 @@
 package me.lauriichan.minecraft.pluginbase.util.math;
 
 public final class InventoryMath {
-    
+
     public static final int DEFAULT_COLUMN_AMOUNT = 9;
 
     private InventoryMath() {
         throw new UnsupportedOperationException();
     }
 
-    public static record Slot(int row, int column) {
+    public static final class Slot {
+
+        private final int row, column;
+
+        public Slot(int row, int column) {
+            this.row = row;
+            this.column = column;
+        }
+
+        public int row() {
+            return row;
+        }
+
+        public int column() {
+            return column;
+        }
 
         public int toSlot(int columnAmount) {
             return InventoryMath.toSlot(column, row, columnAmount);
@@ -33,11 +48,11 @@ public final class InventoryMath {
     public static int toSlot(int row, int column, int columnAmount) {
         return row * columnAmount + column;
     }
-    
+
     public static boolean isValid(int row, int column, int columnAmount, int size) {
         return toSlot(row, column, columnAmount) < size;
     }
-    
+
     public static int slotInBounds(int row, int column, int columnAmount, int size) {
         int slot = toSlot(row, column, columnAmount);
         if (slot < size) {

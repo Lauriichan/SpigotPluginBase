@@ -170,9 +170,10 @@ public class ExtensionProcessor extends AbstractProcessor {
                 continue;
             }
             if (mirror == extensionType || !typeHelper.isAssignable(mirror, extensionType)
-                || !(typeHelper.asElement(mirror) instanceof final TypeElement typeElement)) {
+                || !(typeHelper.asElement(mirror) instanceof TypeElement)) {
                 continue;
             }
+            TypeElement typeElement = (TypeElement) typeHelper.asElement(mirror);
             if (getAnnotationMirror(typeElement, ExtensionPoint.class) == null) {
                 queue.addAll(typeElement.getInterfaces());
                 continue;
@@ -183,10 +184,10 @@ public class ExtensionProcessor extends AbstractProcessor {
             extensionPoints.put(typeName, set);
         }
         final TypeMirror mirror = superElement.getSuperclass();
-        if (!typeHelper.isAssignable(mirror, extensionType) || !(typeHelper.asElement(mirror) instanceof final TypeElement typeElement)) {
+        if (!typeHelper.isAssignable(mirror, extensionType) || !(typeHelper.asElement(mirror) instanceof TypeElement)) {
             return;
         }
-        addToPoints(name, typeElement);
+        addToPoints(name, (TypeElement) typeHelper.asElement(mirror));
     }
 
     /*

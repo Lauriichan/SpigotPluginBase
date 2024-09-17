@@ -12,9 +12,13 @@ public final class Tracer {
     
     private static final Object POP = new Object();
 
-    private static record Task(String name, Task parent, ObjectArrayList<Object> stack) {
+    private static final class Task {
+        private final String name;
+        private final Task parent;
+        private final ObjectArrayList<Object> stack = new ObjectArrayList<>();
         public Task(String name, Task parent) {
-            this(name, parent, new ObjectArrayList<>());
+            this.name = name;
+            this.parent = parent;
         }
     }
 
@@ -68,7 +72,8 @@ public final class Tracer {
                 writer.write("\n" + indent + "| TASK END");
                 continue;
             }
-            if (object instanceof Task task) {
+            if (object instanceof Task) {
+                Task task = (Task) object;
                 writer.write("\n" + indent + "| TASK START (" + task.name + "):");
                 queue.addAll(task.stack);
                 queue.add(POP);

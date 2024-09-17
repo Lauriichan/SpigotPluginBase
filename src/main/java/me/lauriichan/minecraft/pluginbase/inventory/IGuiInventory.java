@@ -632,4 +632,22 @@ public interface IGuiInventory extends IAttributable {
         return map;
     }
 
+    /**
+     * Gets the amount of free slots available in this inventory
+     * 
+     * @return the amount of free slots
+     */
+    default int free() {
+        int slots = 0;
+        final int size = size();
+        for (int index = 0; index < size; index++) {
+            ItemStack stack = getItem(index);
+            if (stack != null && !ItemHelper.isAir(stack.getType())) {
+                continue;
+            }
+            slots++;
+        }
+        return slots;
+    }
+
 }

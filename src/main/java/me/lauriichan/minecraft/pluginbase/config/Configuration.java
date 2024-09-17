@@ -129,10 +129,10 @@ public final class Configuration {
 
     public boolean getBoolean(final String pathUri, final boolean fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Boolean value)) {
+        if (object == null || !(object instanceof Boolean)) {
             return fallback;
         }
-        return value;
+        return (Boolean) object;
     }
 
     public byte getByte(final String pathUri) {
@@ -141,10 +141,10 @@ public final class Configuration {
 
     public byte getByte(final String pathUri, final byte fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value.byteValue();
+        return ((Number) object).byteValue();
     }
 
     public short getShort(final String pathUri) {
@@ -153,10 +153,10 @@ public final class Configuration {
 
     public short getShort(final String pathUri, final short fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value.shortValue();
+        return ((Number) object).shortValue();
     }
 
     public int getInt(final String pathUri) {
@@ -165,10 +165,10 @@ public final class Configuration {
 
     public int getInt(final String pathUri, final int fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value.intValue();
+        return ((Number) object).intValue();
     }
 
     public long getLong(final String pathUri) {
@@ -177,10 +177,10 @@ public final class Configuration {
 
     public long getLong(final String pathUri, final long fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value.longValue();
+        return ((Number) object).longValue();
     }
 
     public float getFloat(final String pathUri) {
@@ -189,10 +189,10 @@ public final class Configuration {
 
     public float getFloat(final String pathUri, final float fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value.floatValue();
+        return ((Number) object).floatValue();
     }
 
     public double getDouble(final String pathUri) {
@@ -201,10 +201,10 @@ public final class Configuration {
 
     public double getDouble(final String pathUri, final double fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value.doubleValue();
+        return ((Number) object).doubleValue();
     }
 
     /*
@@ -217,9 +217,10 @@ public final class Configuration {
 
     public <E extends Enum<E>> E getEnum(final String pathUri, final Class<E> enumClazz, final E fallback) {
         final Object object = get(pathUri);
-        if (!(object instanceof String string)) {
+        if (!(object instanceof String)) {
             return fallback;
         }
+        String string = (String) object;
         try {
             return Enum.valueOf(enumClazz, string);
         } catch (IllegalArgumentException exp1) {
@@ -241,10 +242,10 @@ public final class Configuration {
 
     public Number getNumber(final String pathUri, final Number fallback) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Number value)) {
+        if (object == null || !(object instanceof Number)) {
             return fallback;
         }
-        return value;
+        return (Number) object;
     }
 
     public boolean isConfiguration(final String pathUri) {
@@ -261,11 +262,11 @@ public final class Configuration {
 
     public <E> List<E> getList(final String pathUri, final Class<E> type) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final List<?> list)) {
+        if (object == null || !(object instanceof List)) {
             return Collections.emptyList();
         }
         try {
-            return (List<E>) list;
+            return (List<E>) object;
         } catch (final ClassCastException e) {
             return Collections.emptyList();
         }
@@ -273,7 +274,7 @@ public final class Configuration {
 
     public <K, V> Map<K, V> getMap(final String pathUri, final Class<K> keyType, final Class<V> valueType) {
         final Object object = get(pathUri);
-        if (object == null || !(object instanceof final Map<?, ?> map)) {
+        if (object == null || !(object instanceof Map)) {
             return Collections.emptyMap();
         }
         try {
@@ -296,7 +297,8 @@ public final class Configuration {
         String part;
         length = Math.min(length, path.length);
         for (int index = 0; index < length; index++) {
-            if (!current.contains(part = path[index]) || !(current.map.get(part) instanceof final Configuration config)) {
+            Object obj = current.map.get(part = path[index]);
+            if (obj == null || !(obj instanceof Configuration)) {
                 if (!createIfNotExists) {
                     return null;
                 }
@@ -304,7 +306,7 @@ public final class Configuration {
                 current.map.put(part, tmp);
                 current = tmp;
             } else {
-                current = config;
+                current = (Configuration) obj;
             }
         }
         return current;

@@ -93,8 +93,8 @@ public class BukkitCommand extends Command implements PluginIdentifiableCommand 
             if (completer != null) {
                 suggestions = complete(sender, completer, args, location);
             }
-            if (suggestions == null && executor instanceof TabCompleter completer) {
-                suggestions = complete(sender, completer, args, location);
+            if (suggestions == null && executor instanceof TabCompleter) {
+                suggestions = complete(sender, (TabCompleter) executor, args, location);
             }
         } catch (Throwable ex) {
             StringBuilder message = new StringBuilder();
@@ -112,8 +112,8 @@ public class BukkitCommand extends Command implements PluginIdentifiableCommand 
     }
 
     private List<String> complete(CommandSender sender, TabCompleter completer, String[] args, Location location) {
-        if (completer instanceof BukkitCommandBridge<?> bridge) {
-            return bridge.onTabComplete(sender, this, description, args, location);
+        if (completer instanceof BukkitCommandBridge) {
+            return ((BukkitCommandBridge<?>) completer).onTabComplete(sender, this, description, args, location);
         }
         return completer.onTabComplete(sender, this, description, args);
     }

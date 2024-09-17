@@ -28,13 +28,30 @@ import me.lauriichan.minecraft.pluginbase.extension.Extension;
 
 public class ConfigSourceTransformer implements ISourceTransformer {
 
-    private static record ConfigField(FieldSource<JavaClassSource> field, String name) {}
+    private static final class ConfigField {
+        private final FieldSource<JavaClassSource> field;
+        private final String name;
+        
+        public ConfigField(final FieldSource<JavaClassSource> field, final String name) {
+            this.field = field;
+            this.name = name;
+        }
+        
+        public final FieldSource<JavaClassSource> field() {
+            return field;
+        }
+        
+        public final String name() {
+            return name;
+        }
+    }
 
     @Override
     public boolean canTransform(final JavaSource<?> source) {
-        if (!(source instanceof final JavaClassSource classSource)) {
+        if (!(source instanceof JavaClassSource)) {
             return false;
         }
+        final JavaClassSource classSource = (JavaClassSource) source;
         return !classSource.isAbstract() && !classSource.isRecord() && classSource.hasAnnotation(Config.class)
             && (classSource.hasInterface(IConfigExtension.class) || classSource.hasInterface(ISingleConfigExtension.class));
     }
@@ -52,11 +69,12 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             }
             configFields.add(new ConfigField(field, field.getAnnotation(ConfigValue.class).getStringValue()));
         }
-        
+
         Object2ObjectArrayMap<String, ObjectArrayList<MethodSource<JavaClassSource>>> validators = new Object2ObjectArrayMap<>();
         final List<MethodSource<JavaClassSource>> methods = clazz.getMethods();
         for (final MethodSource<JavaClassSource> method : methods) {
-            if (!method.hasAnnotation(ConfigValueValidator.class) || method.getReturnType().isType(void.class) || method.getReturnType().isType(Void.class)) {
+            if (!method.hasAnnotation(ConfigValueValidator.class) || method.getReturnType().isType(void.class)
+                || method.getReturnType().isType(Void.class)) {
                 continue;
             }
             String[] values = method.getAnnotation(ConfigValueValidator.class).getStringArrayValue();
@@ -65,7 +83,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 if (validatorList == null) {
                     validatorList = new ObjectArrayList<>();
                     validators.put(value, validatorList);
-                } else if(validatorList.contains(method)) {
+                } else if (validatorList.contains(method)) {
                     throw new IllegalStateException("Duplicated field '" + value + "' for validator: " + method.getName());
                 }
                 validatorList.add(method);
@@ -79,7 +97,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
 
         clazz.setPublic();
         clazz.setFinal(true);
-        
+
         if (configFields.isEmpty()) {
             return;
         }
@@ -90,20 +108,20 @@ public class ConfigSourceTransformer implements ISourceTransformer {
         StringBuilder loadBuilder = new StringBuilder();
         StringBuilder saveBuilder = new StringBuilder();
         StringBuilder propergateBuilder = new StringBuilder();
-        loadBuilder.append("""
-            @Override
-            public void onLoad(Configuration configuration) throws Exception {
-                this.generated$modified0 = false;
-            """);
-        saveBuilder.append("""
-            @Override
-            public void onSave(Configuration configuration) throws Exception {
-                this.generated$modified0 = false;
-            """);
-        propergateBuilder.append("""
-            @Override
-            public void onPropergate(Configuration configuration) throws Exception {
-            """);
+        append(loadBuilder, new String[] {
+            "@Override",
+            "public void onLoad(Configuration configuration) throws Exception {",
+            "    this.generated$modified0 = false;"
+        });
+        append(saveBuilder, new String[] {
+            "@Override",
+            "public void onSave(Configuration configuration) throws Exception {",
+            "    this.generated$modified0 = false;"
+        });
+        append(propergateBuilder, new String[] {
+            "@Override",
+            "public void onPropergate(Configuration configuration) throws Exception {"
+        });
 
         ConfigField configField;
         FieldSource<JavaClassSource> field;
@@ -144,33 +162,32 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             removeMethod(clazz, field.getName());
             removeMethod(clazz, "default$" + field.getName());
             removeMethod(clazz, field.getName(), field.getType().getQualifiedNameWithGenerics());
-            addFieldMethod(clazz, field, """
-                public void %1$s(%2$s %1$s) {
-                    if (Objects.equals(this.%1$s, %1$s)) {
-                        return;
-                    }
-                    this.%1$s = %1$s;
-                    this.generated$modified0 = true;
-                }
-                """, """
-                public void %1$s(%2$s %1$s) {
-                    if (this.%1$s == %1$s) {
-                        return;
-                    }
-                    this.%1$s = %1$s;
-                    this.generated$modified0 = true;
-                }
-                """);
-            addFieldMethod(clazz, field, """
-                public %2$s %1$s() {
-                    return this.%1$s;
-                }
-                """);
-            addFieldMethod(clazz, field, """
-                public %2$s default$%1$s() {
-                    return this.generatedDefault$%1$s;
-                }
-                """);
+            addFieldMethod(clazz, field, new String[] {
+                "public void %1$s(%2$s %1$s) {",
+                "    if (Objects.equals(this.%1$s, %1$s)) {",
+                "        return;",
+                "    this.%1$s = %1$s;",
+                "    this.generated$modified0 = true;",
+                "}"
+            }, new String[] {
+                "public void %1$s(%2$s %1$s) {",
+                "    if (this.%1$s == %1$s) {",
+                "        return;",
+                "    }",
+                "    this.%1$s = %1$s;",
+                "    this.generated$modified0 = true;",
+                "}"
+            });
+            addFieldMethod(clazz, field, new String[] {
+                "public %2$s %1$s() {",
+                "    return this.%1$s;",
+                "}"
+            });
+            addFieldMethod(clazz, field, new String[] {
+                "public %2$s default$%1$s() {",
+                "    return this.generatedDefault$%1$s;",
+                "}"
+            });
             if (automatic) {
                 if (index != 0) {
                     loadBuilder.append('\n');
@@ -234,8 +251,8 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 loadBuilder.append(");");
                 saveBuilder.append("configuration.set(\"").append(configField.name).append("\", this.").append(field.getName())
                     .append(");");
-                propergateBuilder.append("configuration.set(\"").append(configField.name).append("\", this.generatedDefault$").append(field.getName())
-                    .append(");");
+                propergateBuilder.append("configuration.set(\"").append(configField.name).append("\", this.generatedDefault$")
+                    .append(field.getName()).append(");");
             }
         }
         if (needObjectsImport) {
@@ -246,20 +263,20 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             method.setName("user$isModified");
             method.setPrivate();
             removeAnnotation(method, Override.class);
-            clazz.addMethod("""
-                @Override
-                public boolean isModified() {
-                    return this.generated$modified0 || user$isModified();
-                }
-                """);
-            
+            clazz.addMethod(string(new String[] {
+                "@Override",
+                "public boolean isModified() {",
+                "    return this.generated$modified0 || user$isModified();",
+                "}"
+            }));
+
         } else {
-            clazz.addMethod("""
-                @Override
-                public boolean isModified() {
-                    return this.generated$modified0;
-                }
-                """);
+            clazz.addMethod(string(new String[] {
+                "@Override",
+                "public boolean isModified() {",
+                "    return this.generated$modified0",
+                "}"
+            }));
         }
         method = clazz.getMethod("onLoad", Configuration.class);
         if (method != null) {
@@ -287,13 +304,26 @@ public class ConfigSourceTransformer implements ISourceTransformer {
         clazz.addMethod(propergateBuilder.append("\n}").toString());
     }
 
-    private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String content) {
-        source.addMethod(content.formatted(field.getName(), field.getType().getQualifiedNameWithGenerics()));
+    private String string(String[] content) {
+        return String.join("\n", content);
     }
 
-    private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String complex,
-        final String primitive) {
-        source.addMethod((field.getType().isPrimitive() ? primitive : complex).formatted(field.getName(),
+    private void append(StringBuilder builder, String[] content) {
+        for (int i = 0; i < content.length; i++) {
+            if (i != 0) {
+                builder.append("\n");
+            }
+            builder.append(content[i]);
+        }
+    }
+
+    private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String[] content) {
+        source.addMethod(string(content).formatted(field.getName(), field.getType().getQualifiedNameWithGenerics()));
+    }
+
+    private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String[] complex,
+        final String[] primitive) {
+        source.addMethod(string(field.getType().isPrimitive() ? primitive : complex).formatted(field.getName(),
             field.getType().getQualifiedNameWithGenerics()));
     }
 

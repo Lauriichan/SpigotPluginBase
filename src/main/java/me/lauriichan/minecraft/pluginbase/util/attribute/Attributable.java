@@ -29,8 +29,9 @@ public abstract class Attributable implements IAttributable {
 
     @Override
     public Class<?> attrClass(final String key) {
-        if (attributes.get(key) instanceof final Class<?> clazz) {
-            return clazz;
+        Object object = attributes.get(key);
+        if (object instanceof Class) {
+            return (Class<?>) object;
         }
         return null;
     }
@@ -42,8 +43,12 @@ public abstract class Attributable implements IAttributable {
 
     @Override
     public <T> Class<? extends T> attrClassOrDefault(final String key, final Class<T> type, final Class<? extends T> fallback) {
-        if (attributes.get(key) instanceof final Class<?> clazz && type.isAssignableFrom(clazz)) {
-            return clazz.asSubclass(type);
+        Object object = attributes.get(key);
+        if (object instanceof Class) {
+            Class<?> clazz = (Class<?>) object;
+            if (type.isAssignableFrom(clazz)) {
+                return clazz.asSubclass(type);
+            }
         }
         return fallback;
     }

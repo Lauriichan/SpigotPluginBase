@@ -10,7 +10,23 @@ import me.lauriichan.minecraft.pluginbase.ConditionConstant;
 
 public final class ConfigMigrator {
 
-    private static record Migration(int targetVersion, ObjectList<ConfigMigrationExtension<?>> migrations) {}
+    private static final class Migration {
+        private final ObjectList<ConfigMigrationExtension<?>> migrations;
+        private final int targetVersion;
+
+        public Migration(int targetVersion, ObjectList<ConfigMigrationExtension<?>> migrations) {
+            this.targetVersion = targetVersion;
+            this.migrations = migrations;
+        }
+
+        public int targetVersion() {
+            return targetVersion;
+        }
+
+        public ObjectList<ConfigMigrationExtension<?>> migrations() {
+            return migrations;
+        }
+    }
 
     private final Object2ObjectArrayMap<Class<? extends IConfigExtension>, Migration> migrations = new Object2ObjectArrayMap<>();
 
@@ -54,7 +70,7 @@ public final class ConfigMigrator {
             migrations.put(key, new Migration(extensions.get(extensions.size() - 1).targetVersion(), extensions));
         });
     }
-    
+
     public int getTargetVersion(Class<? extends IConfigExtension> extension) {
         Migration migration = migrations.get(extension);
         return migration == null ? 0 : migration.targetVersion();
@@ -75,7 +91,8 @@ public final class ConfigMigrator {
             if (migrationExt.targetVersion() <= version) {
                 continue;
             }
-            logger.info("Applying migration '{3}' (version {1} to {2}) for config '{0}'", extension.name(), version, migrationExt.targetVersion(), migrationExt.description());
+            logger.info("Applying migration '{3}' (version {1} to {2}) for config '{0}'", extension.name(), version,
+                migrationExt.targetVersion(), migrationExt.description());
             try {
                 migrationExt.migrate(configuration);
                 version = migrationExt.targetVersion();

@@ -28,14 +28,7 @@ import me.lauriichan.minecraft.pluginbase.command.processor.IBukkitCommandProces
 
 public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends BukkitCommandBridge<A> {
 
-    public static record CommandDefinition(String prefix, String name, List<String> aliases, String description) {
-
-        public CommandDefinition(final String prefix, final String name, final List<String> aliases, final String description) {
-            this.prefix = prefix;
-            this.name = name;
-            this.aliases = Collections.unmodifiableList(aliases);
-            this.description = description;
-        }
+    public static final class CommandDefinition {
 
         public static final Builder of(final String name) {
             return new Builder(name);
@@ -78,6 +71,34 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
                 return new CommandDefinition(prefix.toLowerCase(Locale.ROOT), name, aliases, description);
             }
 
+        }
+
+        private final String prefix;
+        private final String name;
+        private final List<String> aliases;
+        private final String description;
+
+        public CommandDefinition(final String prefix, final String name, final List<String> aliases, final String description) {
+            this.prefix = prefix;
+            this.name = name;
+            this.aliases = Collections.unmodifiableList(aliases);
+            this.description = description;
+        }
+        
+        public String prefix() {
+            return prefix;
+        }
+        
+        public String name() {
+            return name;
+        }
+        
+        public List<String> aliases() {
+            return aliases;
+        }
+        
+        public String description() {
+            return description;
         }
 
     }
