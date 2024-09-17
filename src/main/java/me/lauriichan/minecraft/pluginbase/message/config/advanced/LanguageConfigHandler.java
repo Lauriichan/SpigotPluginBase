@@ -17,7 +17,7 @@ final class LanguageConfigHandler implements IConfigHandler {
     static final LanguageConfigHandler LANGUAGE = new LanguageConfigHandler();
 
     @Override
-    public void load(final Configuration configuration, final IDataSource source) throws Exception {
+    public void load(final Configuration configuration, final IDataSource source, final boolean onlyRaw) throws Exception {
         final File rootDir = (File) source.getSource();
         final File[] langFiles = rootDir.listFiles(file -> file.isFile() && file.getName().endsWith(".json"));
         if (langFiles == null || langFiles.length == 0) {
@@ -29,7 +29,7 @@ final class LanguageConfigHandler implements IConfigHandler {
             if (!VALID_LANG_NAME.test(langName)) {
                 continue;
             }
-            MessageConfigHandler.MESSAGE.load(configuration.getConfiguration(langName, true), new FileDataSource(langFile));
+            MessageConfigHandler.MESSAGE.load(configuration.getConfiguration(langName, true), new FileDataSource(langFile), onlyRaw);
         }
     }
 

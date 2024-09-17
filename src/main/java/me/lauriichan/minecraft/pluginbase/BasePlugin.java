@@ -33,6 +33,7 @@ import me.lauriichan.minecraft.pluginbase.extension.IConditionMap;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.extension.IExtensionPool;
 import me.lauriichan.minecraft.pluginbase.inventory.paged.PagedInventoryRegistry;
+import me.lauriichan.minecraft.pluginbase.io.IOManager;
 import me.lauriichan.minecraft.pluginbase.listener.IListenerExtension;
 import me.lauriichan.minecraft.pluginbase.message.IMessageExtension;
 import me.lauriichan.minecraft.pluginbase.message.provider.SimpleMessageProviderFactory;
@@ -465,6 +466,11 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     public final PagedInventoryRegistry pagedInventoryRegistry() {
         return pagedInventoryRegistry;
+    }
+
+    public IOManager ioManager() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

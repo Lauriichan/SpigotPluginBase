@@ -89,22 +89,37 @@ public final class ConfigWrapper<T extends IConfigExtension> {
             if (lastTimeModified == source.lastModified() && !config.isModified()) {
                 return SKIPPED;
             }
-            try {
-                handler.load(configuration, source);
-                lastTimeModified = source.lastModified();
-            } catch (final Exception exception) {
-                logger.warning("Failed to load configuration from '{0}'!", exception, path);
-                return FAIL_IO_LOAD;
-            }
+            configuration.clear();
             if (migrator != null) {
+                try {
+                    handler.load(configuration, source, true);
+                    lastTimeModified = source.lastModified();
+                } catch (final Exception exception) {
+                    logger.warning("Failed to load configuration from '{0}'!", exception, path);
+                    return FAIL_IO_LOAD;
+                }
                 int version = configuration.getInt("version", 0);
                 if (migrator.needsMigration(configType, version)) {
                     try {
-                        migrator.migrate(logger, version, configuration, config);
+                        int newVersion = migrator.migrate(logger, version, configuration, config);
+                        configuration.set("version", newVersion);
                     } catch (ConfigMigrationFailedException exception) {
                         logger.warning("Failed to migrate configuration data of '{0}'!", exception, path);
                         return FAIL_DATA_MIGRATE;
                     }
+                    try {
+                        handler.save(configuration, source);
+                    } catch(final Exception exception) {
+                        logger.warning("Failed to save migrated configuration to '{0}'!", exception, path);
+                        return FAIL_IO_SAVE;
+                    }
+                }
+                try {
+                    handler.load(configuration, source, false);
+                    lastTimeModified = source.lastModified();
+                } catch (final Exception exception) {
+                    logger.warning("Failed to load configuration from '{0}'!", exception, path);
+                    return FAIL_IO_LOAD;
                 }
             }
         } else {

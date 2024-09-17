@@ -6,25 +6,26 @@ import java.io.BufferedWriter;
 import me.lauriichan.laylib.json.IJson;
 import me.lauriichan.laylib.json.JsonArray;
 import me.lauriichan.laylib.json.JsonObject;
+import me.lauriichan.laylib.json.io.JsonParser;
+import me.lauriichan.laylib.json.io.JsonWriter;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.config.handler.JsonConfigHandler;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
-import me.lauriichan.minecraft.pluginbase.util.Json;
 
 public final class MessageConfigHandler implements IConfigHandler {
 
     public static final MessageConfigHandler MESSAGE = new MessageConfigHandler();
 
-    private final Json json = JsonConfigHandler.JSON.json();
+    private final JsonWriter jsonWriter = JsonConfigHandler.WRITER;
 
     private MessageConfigHandler() {}
 
     @Override
-    public void load(final Configuration configuration, final IDataSource source) throws Exception {
+    public void load(final Configuration configuration, final IDataSource source, final boolean onlyRaw) throws Exception {
         IJson<?> element;
         try (BufferedReader reader = source.openReader()) {
-            element = json.asJson(reader);
+            element = JsonParser.fromReader(reader);
         }
         if (!element.isObject()) {
             throw new IllegalStateException("Config source doesn't contain a JsonObject");
@@ -68,7 +69,7 @@ public final class MessageConfigHandler implements IConfigHandler {
         final JsonObject root = new JsonObject();
         saveToObject(root, configuration);
         try (BufferedWriter writer = source.openWriter()) {
-            writer.write(json.asString(root));
+            jsonWriter.toWriter(root, writer);
         }
     }
 
