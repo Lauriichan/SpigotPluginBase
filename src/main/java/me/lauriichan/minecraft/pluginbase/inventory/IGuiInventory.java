@@ -624,7 +624,7 @@ public interface IGuiInventory extends IAttributable {
         final int size = size();
         for (int index = 0; index < size; index++) {
             final ItemStack current = getItem(index);
-            if (current != null && !current.isSimilar(itemStack) && !current.getType().isAir()) {
+            if (current != null && !current.isSimilar(itemStack) && !ItemHelper.isAir(current.getType())) {
                 continue;
             }
             map.put(index, current);

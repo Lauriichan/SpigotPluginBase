@@ -102,7 +102,7 @@ public final class WrappedInventory implements IGuiInventory {
             throw new IndexOutOfBoundsException(index);
         }
         final ItemStack stack = inventory.getItem(index);
-        if (stack != null && stack.getType().isAir()) {
+        if (stack != null && ItemHelper.isAir(stack.getType())) {
             return null;
         }
         return stack;

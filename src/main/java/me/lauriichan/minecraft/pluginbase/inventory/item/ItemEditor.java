@@ -6,25 +6,14 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import me.lauriichan.minecraft.pluginbase.util.StringUtil;
 import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 
 public final class ItemEditor {
-
-    public static ItemEditor ofHead(final OfflinePlayer player) {
-        return new ItemEditor(Material.PLAYER_HEAD).setHeadTexture(player);
-    }
-
-    public static ItemEditor ofHead(final String texture) {
-        return new ItemEditor(Material.PLAYER_HEAD).setHeadTexture(texture);
-    }
 
     public static ItemEditor ofNullable(final ItemStack itemStack) {
         if (itemStack == null) {
@@ -90,10 +79,6 @@ public final class ItemEditor {
         itemMeta.setDisplayName(BukkitColor.apply(name));
         return this;
     }
-
-    public String getItemName() {
-        return StringUtil.formatPascalCase(itemStack.getType().getKey().getKey().replace('_', ' '));
-    }
     
     public ColoredNameEditor name() {
         return new ColoredNameEditor(this);
@@ -118,102 +103,9 @@ public final class ItemEditor {
         return new ColoredLoreEditor(this);
     }
 
-    // Durability
-    public boolean isDamageable() {
-        return itemMeta instanceof Damageable;
-    }
-
-    public boolean isUnbreakable() {
-        return itemMeta != null && itemMeta.isUnbreakable();
-    }
-
-    public int getMaxDurability() {
-        if (isDamageable()) {
-            return itemStack.getType().getMaxDurability();
-        }
-        return 0;
-    }
-
-    public int getDamage() {
-        if (isDamageable()) {
-            return ((Damageable) itemMeta).getDamage();
-        }
-        return 0;
-    }
-
-    public int getDurability() {
-        if (isDamageable()) {
-            return itemStack.getType().getMaxDurability() - ((Damageable) itemMeta).getDamage();
-        }
-        return -1;
-    }
-
-    public ItemEditor setDamage(final int damage) {
-        if (isDamageable()) {
-            ((Damageable) itemMeta).setDamage(Math.max(Math.min(damage, 0), itemStack.getType().getMaxDurability()));
-        }
-        return this;
-    }
-
-    public ItemEditor setDurability(final int durability) {
-        if (isDamageable()) {
-            ((Damageable) itemMeta).setDamage(Math.max(itemStack.getType().getMaxDurability() - Math.min(durability, 0), 0));
-        }
-        return this;
-    }
-
     // Texture
     public boolean isHead() {
         return itemMeta instanceof SkullMeta;
-    }
-
-    public ItemEditor setHeadTexture(final String texture) {
-        if (!isHead()) {
-            return this;
-        }
-        HeadProfileProvider.PROVIDER.setTexture((SkullMeta) itemMeta, texture);
-        return this;
-    }
-
-    public ItemEditor setHeadTexture(final OfflinePlayer player) {
-        if (!isHead()) {
-            return this;
-        }
-        HeadProfileProvider.PROVIDER.setTexture((SkullMeta) itemMeta, player);
-        return this;
-    }
-
-    public String getHeadTexture() {
-        if (!isHead()) {
-            return null;
-        }
-        return HeadProfileProvider.PROVIDER.getTexture((SkullMeta) itemMeta);
-    }
-
-    // Model
-    public boolean hasModel() {
-        return itemMeta != null && itemMeta.hasCustomModelData();
-    }
-
-    public int getModel() {
-        if (itemMeta != null) {
-            return itemMeta.getCustomModelData();
-        }
-        return 0;
-    }
-
-    public ItemEditor setModel(final int model) {
-        if (itemMeta != null) {
-            itemMeta.setCustomModelData(Math.max(model, 0));
-        }
-        return this;
-    }
-
-    public ItemEditor clearModel() {
-        if (itemMeta != null) {
-            itemMeta.setCustomModelData(null);
-        }
-        return this;
     }
 
     // Enchantment

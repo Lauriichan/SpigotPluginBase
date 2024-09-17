@@ -83,7 +83,6 @@ public class BukkitCommand extends Command implements PluginIdentifiableCommand 
         return tabComplete(sender, alias, args, null);
     }
 
-    @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
         Preconditions.checkArgument(sender != null, "Sender cannot be null");
         Preconditions.checkArgument(args != null, "Arguments cannot be null");

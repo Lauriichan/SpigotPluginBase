@@ -106,6 +106,7 @@ public interface IHandler {
             }
             return onClickClone(entity, inventory, event.getCurrentItem(), slot);
         case COLLECT_TO_CURSOR:
+        case HOTBAR_MOVE_AND_READD:
             return true;
         default:
             return false;

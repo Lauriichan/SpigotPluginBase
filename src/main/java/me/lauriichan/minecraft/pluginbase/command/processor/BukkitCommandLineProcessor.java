@@ -10,8 +10,6 @@ import java.util.stream.Stream;
 
 import org.bukkit.Location;
 
-import com.google.common.collect.Streams;
-
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.command.ArgumentMap;
 import me.lauriichan.laylib.command.CommandManager;
@@ -231,7 +229,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
 
     private List<String> getPermittedCommands(CommandManager commandManager, BukkitActor<?> actor) {
         return commandManager.getCommands().stream().filter(cmd -> !cmd.isRestricted() || actor.hasPermission(cmd.getPermission()))
-            .flatMap(cmd -> Streams.concat(Stream.of(cmd.getName()), cmd.getAliases().stream())).toList();
+            .flatMap(cmd -> Stream.concat(Stream.of(cmd.getName()), cmd.getAliases().stream())).toList();
     }
 
     private List<String> createSuggestions(final Actor<?> actor, final String data, final NodeArgument argument, final IArgumentMap map) {

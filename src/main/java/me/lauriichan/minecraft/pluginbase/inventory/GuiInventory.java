@@ -23,7 +23,6 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     private volatile Inventory inventory;
 
     private String title;
-    private boolean updateTitleOnOpen = false;
 
     private int columnAmount, rowAmount;
     private int size;
@@ -33,9 +32,6 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
 
     public GuiInventory(final String title, final InventoryType type) {
         this.type = Objects.requireNonNull(type) == InventoryType.ENDER_CHEST ? InventoryType.CHEST : type;
-        if (!type.isCreatable()) {
-            throw new IllegalArgumentException("InventoryType '" + type.name() + "' is not creatable!");
-        }
         this.title = Objects.requireNonNull(title);
         this.size = type.getDefaultSize();
         this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
@@ -104,7 +100,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     }
 
     private boolean applyType(InventoryType type) {
-        if (type == null || this.type == type || !type.isCreatable()) {
+        if (type == null || this.type == type) {
             return false;
         }
         this.type = type == InventoryType.ENDER_CHEST ? InventoryType.CHEST : type;
@@ -169,23 +165,16 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     }
 
     private void internalUpdate(boolean titleOnlyChanged) {
-        updateTitleOnOpen = titleOnlyChanged;
         HumanEntity[] entities = EMPTY_ENTITIES;
         if (inventory != null) {
             entities = inventory.getViewers().toArray(HumanEntity[]::new);
-            if (titleOnlyChanged) {
-                String updatedTitle = BukkitColor.apply(title);
-                for (HumanEntity entity : entities) {
-                    GuiInventoryReflection.updateTitle(entity, inventory, updatedTitle);
-                }
-                return;
-            }
         }
         inventory = chestSize != null ? Bukkit.createInventory(this, chestSize.inventorySize(), BukkitColor.apply(title))
             : Bukkit.createInventory(this, type, BukkitColor.apply(title));
         inventoryChanged.set(true);
         try {
             for (final HumanEntity entity : entities) {
+                entity.closeInventory();
                 entity.openInventory(inventory);
             }
         } finally {
@@ -217,9 +206,6 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             }
             handler.onUpdate(this, false);
         }
-        if (updateTitleOnOpen) {
-            GuiInventoryReflection.updateTitle(entity, inv, title);
-        }
     }
 
     @Override
@@ -248,7 +234,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             throw new IndexOutOfBoundsException(index);
         }
         final ItemStack stack = inventory.getItem(index);
-        if (stack != null && stack.getType().isAir()) {
+        if (stack != null && ItemHelper.isAir(stack.getType())) {
             return null;
         }
         return stack;

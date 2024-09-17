@@ -26,8 +26,6 @@ public final class ColoredNameEditor extends ColoredStringEditor<ColoredNameEdit
         ItemMeta meta = editor.getItemMeta();
         if (meta.hasDisplayName()) {
             content.add(meta.getDisplayName());
-        } else {
-            content.add(editor.getItemName());
         }
     }
 

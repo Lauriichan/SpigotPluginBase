@@ -228,7 +228,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         }
     }
 
-    final void onReady() {
+    public final void onReady() {
         if (actDisabled || (state != 2)) {
             return;
         }
@@ -326,7 +326,6 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     }
 
     private final void onCoreEnable() throws Throwable {
-        new BasePluginListener(this);
         setupConditionMap();
         registerMessages();
         setupArgumentRegistry();

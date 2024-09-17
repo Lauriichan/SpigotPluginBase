@@ -27,49 +27,7 @@ public final class BukkitColor {
     }
 
     public static String apply(final String string) {
-        final StringBuilder output = new StringBuilder();
-        final int length = string.length();
-        for (int index = 0; index < length; index++) {
-            final char chr = string.charAt(index);
-            if (chr == REPLACEMENT_CHAR) {
-                if (index + 1 >= length) {
-                    break;
-                }
-                if (string.charAt(index + 1) != HEX_CHAR || index + 4 >= length) {
-                    final ChatColor format = ChatColor.getByChar(string.charAt(index + 1));
-                    if (format == null) {
-                        output.append(chr);
-                        continue;
-                    }
-                    index++;
-                    output.append(format.toString().toLowerCase());
-                    continue;
-                }
-                final StringBuilder hex = new StringBuilder();
-                for (int idx = index + 2; idx <= index + 7 && idx < length; idx++) {
-                    final char hch = string.charAt(idx);
-                    if (hch >= 'A' && hch <= 'Z') {
-                        hex.append((char) (hch + 32));
-                        continue;
-                    }
-                    if (hch >= 'a' && hch <= 'z' || hch >= '0' && hch <= '9') {
-                        hex.append(hch);
-                        continue;
-                    }
-                    break;
-                }
-                if (hex.length() != 6 && hex.length() != 3 && hex.length() != 1) {
-                    output.append(chr);
-                    continue;
-                }
-                index -= 6 - hex.length();
-                index += 7;
-                output.append(ChatColor.of(ColorParser.parse(hex.toString())).toString().toLowerCase());
-                continue;
-            }
-            output.append(chr);
-        }
-        return output.toString();
+        return ChatColor.translateAlternateColorCodes(REPLACEMENT_CHAR, string);
     }
 
     public static String unapply(final String string) {
@@ -78,49 +36,7 @@ public final class BukkitColor {
         for (int index = 0; index < length; index++) {
             final char chr = string.charAt(index);
             if (chr == COLOR_CHAR) {
-                if (index + 1 >= length) {
-                    break;
-                }
-                final char next = Character.toLowerCase(string.charAt(index + 1));
-                if (next != 'x') {
-                    if (ALL_CODES.indexOf(next) == -1) {
-                        output.append(chr);
-                        continue;
-                    }
-                    index++;
-                    output.append(REPLACEMENT_CHAR).append(next);
-                    continue;
-                }
-                final StringBuilder hex = new StringBuilder();
-                boolean colChar = false;
-                for (int idx = index + 2; idx <= index + 13; idx++) {
-                    final char hch = string.charAt(idx);
-                    if (hch == COLOR_CHAR) {
-                        colChar = true;
-                        continue;
-                    }
-                    if (!colChar) {
-                        break;
-                    }
-                    if (hch >= 'A' && hch <= 'Z') {
-                        hex.append((char) (hch + 32));
-                        continue;
-                    }
-                    if (hch >= 'a' && hch <= 'z' || hch >= '0' && hch <= '9') {
-                        hex.append(hch);
-                        continue;
-                    }
-                    break;
-                }
-                if (hex.length() != 6 && hex.length() != 3) {
-                    output.append(chr);
-                    continue;
-                }
-                if (hex.length() == 3) {
-                    index -= 6;
-                }
-                index += 13;
-                output.append(REPLACEMENT_CHAR).append(HEX_CHAR).append(hex.toString().toLowerCase());
+                output.append(REPLACEMENT_CHAR);
                 continue;
             }
             output.append(chr);

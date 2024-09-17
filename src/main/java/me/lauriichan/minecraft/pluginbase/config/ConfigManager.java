@@ -1,6 +1,6 @@
 package me.lauriichan.minecraft.pluginbase.config;
 
-import com.google.common.collect.Streams;
+import java.util.stream.Stream;
 
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -56,7 +56,7 @@ public final class ConfigManager {
     }
 
     public ObjectList<ConfigWrapper<?>> wrappers() {
-        return Streams.concat(configs.values().stream(), multiConfigs.values().stream().flatMap(config -> config.wrappers().stream()))
+        return Stream.concat(configs.values().stream(), multiConfigs.values().stream().flatMap(config -> config.wrappers().stream()))
             .collect(SimpleCollectors.toList());
     }
 
