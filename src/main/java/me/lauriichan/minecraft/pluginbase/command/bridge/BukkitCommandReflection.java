@@ -13,7 +13,7 @@ import me.lauriichan.minecraft.pluginbase.BasePlugin;
 
 final class BukkitCommandReflection {
 
-    private static final Class<?> CRAFT_SERVER = BasePlugin.getPlugin(BasePlugin.class).bukkitReflection()
+    private static final Class<?> CRAFT_SERVER = BasePlugin.getBasePlugin().bukkitReflection()
         .findCraftBukkitClass("CraftServer");
 
     private static final MethodHandle GET_COMMAND_MAP = JavaLookup.PLATFORM.findMethod(CRAFT_SERVER, "getCommandMap", MethodType.methodType(SimpleCommandMap.class));

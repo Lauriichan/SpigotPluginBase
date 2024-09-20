@@ -183,10 +183,10 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
             return this;
         }
         if (listener != null) {
-            plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+            plugin.getServer().getPluginManager().registerEvents(listener, plugin.bukkitPlugin());
         }
         final SimpleCommandMap commandMap = getCommandMap();
-        final BukkitCommand pluginCommand = new BukkitCommand(definition.name(), plugin);
+        final BukkitCommand pluginCommand = new BukkitCommand(definition.name(), plugin.bukkitPlugin());
         pluginCommand.setAliases(new ArrayList<>(definition.aliases()));
         pluginCommand.executor(this);
         pluginCommand.completer(this);

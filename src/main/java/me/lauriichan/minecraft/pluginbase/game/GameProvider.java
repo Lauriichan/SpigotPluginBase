@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
-import me.lauriichan.minecraft.pluginbase.game.PhasedRef.PhasedType;
+import me.lauriichan.minecraft.pluginbase.game.phased.PhasedType;
 
 public final class GameProvider<G extends Game> {
 
@@ -18,11 +18,12 @@ public final class GameProvider<G extends Game> {
 
     private final ObjectList<Class<? extends Phase<?>>> phases;
     private final ObjectList<PhasedType<? extends Task<G>>> tasks;
+    private final ObjectList<PhasedListener> listeners;
 
     private final Object2ObjectMap<String, GameState<G>> states = Object2ObjectMaps.synchronize(new Object2ObjectArrayMap<>());
 
     GameProvider(final GameManager manager, final String id, final Class<G> gameType, final ObjectList<Class<? extends Phase<?>>> phaseList,
-        final ObjectList<Class<? extends Task<?>>> taskList) {
+        final ObjectList<Class<? extends Task<?>>> taskList, final ObjectList<PhasedListener> listeners) {
         this.manager = manager;
         this.id = id;
         this.gameType = gameType;
@@ -36,6 +37,7 @@ public final class GameProvider<G extends Game> {
             }
             this.tasks = ObjectLists.unmodifiable(tasks);
         }
+        this.listeners = listeners;
     }
 
     public GameManager manager() {
@@ -56,6 +58,10 @@ public final class GameProvider<G extends Game> {
     
     public ObjectList<PhasedType<? extends Task<G>>> tasks() {
         return tasks;
+    }
+
+    public ObjectList<PhasedListener> listeners() {
+        return listeners;
     }
 
     public boolean hasState(String name) {

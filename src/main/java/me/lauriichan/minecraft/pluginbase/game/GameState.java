@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.laylib.reflection.JavaAccess;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.game.phased.IPhased;
 import me.lauriichan.minecraft.pluginbase.util.tick.AbstractTickTimer;
 
 public final class GameState<G extends Game> {
@@ -36,9 +37,11 @@ public final class GameState<G extends Game> {
     private final G game;
     
     private final ObjectList<Phase<G>> phases;
-    private final ObjectList<PhasedRef<? extends Task<G>>> tasks;
-    
+    private final ObjectList<IPhased<? extends Task<G>>> tasks;
+    private final ObjectList<PhasedEventListener> listeners;
+
     private final ObjectList<Task<G>> activeTasks;
+    private final ObjectList<PhasedEventListener> activeListeners;
 
     private volatile int phaseIdx;
     
@@ -54,10 +57,14 @@ public final class GameState<G extends Game> {
         ObjectArrayList<Phase<G>> phases = new ObjectArrayList<>(provider.phases().size());
         provider.phases().forEach(phaseType -> phases.add((Phase<G>) JavaAccess.PLATFORM.instance(phaseType)));
         this.phases = ObjectLists.unmodifiable(phases);
-        ObjectArrayList<PhasedRef<? extends Task<G>>> tasks = new ObjectArrayList<>(provider.tasks().size());
+        ObjectArrayList<IPhased<? extends Task<G>>> tasks = new ObjectArrayList<>(provider.tasks().size());
         provider.tasks().forEach(type -> tasks.add(type.newRef()));
         this.tasks = ObjectLists.unmodifiable(tasks);
         this.activeTasks = tasks.isEmpty() ? ObjectLists.emptyList() :  ObjectLists.synchronize(new ObjectArrayList<>(tasks.size()));
+        ObjectArrayList<PhasedEventListener> listeners = new ObjectArrayList<>(provider.listeners().size());
+        provider.listeners().forEach(listener -> listeners.add(new PhasedEventListener(listener, this)));
+        this.listeners = ObjectLists.unmodifiable(listeners);
+        this.activeListeners = listeners.isEmpty() ? ObjectLists.emptyList() :  ObjectLists.synchronize(new ObjectArrayList<>(listeners.size()));
         this.phaseIdx = phases.isEmpty() ? -1 : 0;
         timer.setLength(50, TimeUnit.MILLISECONDS);
         timer.setPauseLength(1, TimeUnit.SECONDS);
@@ -121,6 +128,9 @@ public final class GameState<G extends Game> {
     }
     
     public void setPhase(Class<? extends Phase<?>> phaseType) {
+        if (!timer.isAlive()) {
+            return;
+        }
         int index = provider.phases().indexOf(phaseType);
         if (index == -1) {
             throw new IllegalArgumentException("Unknown phase '" + phaseType.getName() + "' for game '" + provider.id() + "'.");
@@ -140,14 +150,26 @@ public final class GameState<G extends Game> {
     
     private void activatePhase(Phase<G> phase) {
         phase.onBegin(this);
-        if (!activeTasks.isEmpty()) {
-            activeTasks.clear();
-        }
         if(!tasks.isEmpty()) {
+            if (!activeTasks.isEmpty()) {
+                activeTasks.clear();
+            }
             Class<? extends Phase<?>> phaseType = (Class<? extends Phase<?>>) phase.getClass();
             tasks.forEach(task -> {
                 if (task.shouldBeActive(phaseType)) {
                     activeTasks.add(task.get());
+                }
+            });
+        }
+        if (!provider.listeners().isEmpty()) {
+            if (!activeListeners.isEmpty()) {
+                activeListeners.clear();
+            }
+            Class<? extends Phase<?>> phaseType = (Class<? extends Phase<?>>) phase.getClass();
+            listeners.forEach(listener -> {
+                listener.update(phaseType);
+                if (listener.hasActive()) {
+                    activeListeners.add(listener);
                 }
             });
         }
@@ -159,6 +181,11 @@ public final class GameState<G extends Game> {
         }
         // Stop timer before game
         timer.stop();
+        for (PhasedEventListener listener : activeListeners) {
+            listener.unregister();
+        }
+        activeListeners.clear();
+        activeTasks.clear();
         game.onStop(this);
     }
 

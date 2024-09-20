@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -32,6 +33,7 @@ import me.lauriichan.minecraft.pluginbase.config.startup.StartupConfig;
 import me.lauriichan.minecraft.pluginbase.extension.IConditionMap;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.extension.IExtensionPool;
+import me.lauriichan.minecraft.pluginbase.game.GameManager;
 import me.lauriichan.minecraft.pluginbase.inventory.paged.PagedInventoryRegistry;
 import me.lauriichan.minecraft.pluginbase.io.IOManager;
 import me.lauriichan.minecraft.pluginbase.listener.IListenerExtension;
@@ -47,7 +49,11 @@ import me.lauriichan.minecraft.pluginbase.util.instance.SharedInstances;
 import me.lauriichan.minecraft.pluginbase.util.instance.SimpleInstanceInvoker;
 import me.lauriichan.minecraft.pluginbase.util.reflection.SpigotReflection;
 
-public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
+public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin implements IBasePluginAccess {
+    
+    public static BasePlugin<?> getBasePlugin() {
+        return ((IBasePluginAccess) BasePlugin.getProvidingPlugin(BasePlugin.class)).base();
+    }
 
     public static enum PluginPhase {
 
@@ -115,10 +121,14 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     private volatile ConditionMapImpl conditionMap;
 
+    private volatile IOManager ioManager;
+    
     private volatile ConfigMigrator configMigrator;
     private volatile ConfigManager configManager;
     private volatile ConfigWrapper<StartupConfig> startupConfig;
 
+    private volatile GameManager gameManager;
+    
     private volatile PagedInventoryRegistry pagedInventoryRegistry;
 
     private volatile boolean actDisabled;
@@ -347,6 +357,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         registerMessages();
         setupArgumentRegistry();
         setupConfigs();
+        setupGameManager();
     }
 
     private final void onCorePostEnable() throws Throwable {
@@ -366,15 +377,21 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     }
 
     protected void setupConfigs() {
+        ioManager = new IOManager(this);
         configMigrator = new ConfigMigrator(this);
         configManager = new ConfigManager(this);
         configManager.reload();
+    }
+    
+    private final void setupGameManager() {
+        gameManager = new GameManager(this);
     }
 
     private final void registerListeners() {
         final IExtensionPool<IListenerExtension> pool = extension(IListenerExtension.class, true);
         final PluginManager pluginManager = getServer().getPluginManager();
-        pool.callInstances(listener -> pluginManager.registerEvents(listener, this));
+        final Plugin bukkitPlugin = bukkitPlugin();
+        pool.callInstances(listener -> pluginManager.registerEvents(listener, bukkitPlugin));
     }
 
     protected void registerMessages() {
@@ -393,7 +410,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     }
     
     protected void disablePlugin() {
-        getServer().getPluginManager().disablePlugin(this);
+        getServer().getPluginManager().disablePlugin(bukkitPlugin());
     }
 
     private final void onCoreReady() throws Throwable {
@@ -439,7 +456,16 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     /*
      * Getter
      */
-
+    
+    @Override
+    public BasePlugin<?> base() {
+        return this;
+    }
+    
+    public Plugin bukkitPlugin() {
+        return this;
+    }
+    
     public final Path jarRoot() {
         return jarRoot;
     }
@@ -476,6 +502,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         return conditionMap;
     }
 
+    public final IOManager ioManager() {
+        return ioManager;
+    }
+
     public final ConfigMigrator configMigrator() {
         return configMigrator;
     }
@@ -483,14 +513,13 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     public final ConfigManager configManager() {
         return configManager;
     }
+    
+    public final GameManager gameManager() {
+        return gameManager;
+    }
 
     public final PagedInventoryRegistry pagedInventoryRegistry() {
         return pagedInventoryRegistry;
-    }
-
-    public IOManager ioManager() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }

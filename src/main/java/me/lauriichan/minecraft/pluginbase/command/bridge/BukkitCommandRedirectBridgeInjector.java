@@ -44,7 +44,7 @@ public final class BukkitCommandRedirectBridgeInjector<A extends BukkitActor<?>>
         this.prefix = plugin.getName().toLowerCase(Locale.ROOT);
         this.bridge = new BukkitCommandRedirectBridge<>(processor, commandManager, plugin, prefix, actorBuilder);
         if (processor.requiresListener()) {
-            plugin.getServer().getPluginManager().registerEvents(new BukkitCommandBridgeListener(commandManager, plugin), plugin);
+            plugin.getServer().getPluginManager().registerEvents(new BukkitCommandBridgeListener(commandManager, plugin), plugin.bukkitPlugin());
         }
         this.messageManager = plugin.messageManager();
     }

@@ -64,6 +64,17 @@ public final class GameManager {
             }
             list.add((Class<? extends Task<?>>) taskType);
         });
+        Object2ObjectArrayMap<Class<? extends Game>, ObjectArrayList<PhasedListener>> listenerMap = new Object2ObjectArrayMap<>();
+        plugin.extension(PhasedListener.class, true).callInstances(listener -> {
+            if (listener.gameType() == null) {
+                throw new IllegalStateException("Listener '" + listener.getClass().getName() + "' doesn't provide the game it is related to");
+            }
+            ObjectArrayList<PhasedListener> list = listenerMap.get(listener.gameType());
+            if (list == null) {
+                list = new ObjectArrayList<>();
+                listenerMap.put(listener.gameType(), list);
+            }
+        });
         Object2ObjectOpenHashMap<Class<? extends Game>, GameProvider<?>> type2Game = new Object2ObjectOpenHashMap<>();
         Object2ObjectOpenHashMap<String, GameProvider<?>> id2Game = new Object2ObjectOpenHashMap<>();
         plugin.extension(Game.class, false).callClasses(gameType -> {
@@ -91,7 +102,13 @@ public final class GameManager {
                     p1.getDeclaredAnnotation(GameTask.class).orderId()));
                 tasks = ObjectLists.unmodifiable(tasks);
             }
-            GameProvider<?> provider = new GameProvider<>(this, gameId.value(), gameType, phases, tasks);
+            ObjectList<PhasedListener> listeners = listenerMap.get(gameType);
+            if (listeners == null) {
+                listeners = ObjectLists.emptyList();
+            } else {
+                listeners = ObjectLists.unmodifiable(listeners);
+            }
+            GameProvider<?> provider = new GameProvider<>(this, gameId.value(), gameType, phases, tasks, listeners);
             type2Game.put(gameType, provider);
             id2Game.put(gameId.value(), provider);
         });

@@ -12,6 +12,7 @@ import me.lauriichan.laylib.json.io.JsonParser;
 import me.lauriichan.laylib.json.io.JsonWriter;
 import me.lauriichan.laylib.reflection.ClassUtil;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.IBasePluginAccess;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.io.IOManager;
@@ -31,7 +32,7 @@ public final class JsonConfigHandler implements IConfigHandler {
     private final IOManager ioManager;
     
     private JsonConfigHandler() {
-        ioManager = ((BasePlugin<?>) BasePlugin.getProvidingPlugin(BasePlugin.class)).ioManager();
+        ioManager = BasePlugin.getBasePlugin().ioManager();
     }
 
     @Override
