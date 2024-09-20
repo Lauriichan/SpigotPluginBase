@@ -6,11 +6,11 @@ import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 @ExtensionPoint
 public abstract class Phase<G extends Game> implements IExtension {
     
-    protected void onBegin(GameState<?> state) {}
+    protected void onBegin(GameState<G> state) {}
     
-    protected void onTick(GameState<?> state, long tick) {}
+    protected void onTick(GameState<G> state, long tick) {}
     
-    protected void onEnd(GameState<?> state) {}
+    protected void onEnd(GameState<G> state) {}
     
     protected abstract boolean nextPhase();
 
