@@ -166,6 +166,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
                 "public void %1$s(%2$s %1$s) {",
                 "    if (Objects.equals(this.%1$s, %1$s)) {",
                 "        return;",
+                "    }",
                 "    this.%1$s = %1$s;",
                 "    this.generated$modified0 = true;",
                 "}"
@@ -274,7 +275,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             clazz.addMethod(string(new String[] {
                 "@Override",
                 "public boolean isModified() {",
-                "    return this.generated$modified0",
+                "    return this.generated$modified0;",
                 "}"
             }));
         }

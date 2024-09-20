@@ -15,7 +15,7 @@ public final class SimpleMessage implements IMessage, ISimpleMessage {
     }
 
     @Override
-    public void translation(final String translation) {
+    public void setTranslation(final String translation) {
         if (translation == null || translation.isBlank()) {
             this.translation = null;
             return;
@@ -39,6 +39,11 @@ public final class SimpleMessage implements IMessage, ISimpleMessage {
             return provider.getFallback();
         }
         return translation;
+    }
+
+    @Override
+    public String fallback() {
+        return provider.getFallback();
     }
 
 }

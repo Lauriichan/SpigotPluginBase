@@ -1,7 +1,7 @@
 package me.lauriichan.minecraft.pluginbase.message.provider;
 
-public interface ISimpleMessageProvider {
+public interface ISimpleFallback {
     
-    String getFallback();
+    String fallback();
 
 }

@@ -1,7 +1,7 @@
 package me.lauriichan.minecraft.pluginbase.message.provider;
 
-public interface ISimpleMessage {
+public interface ISimpleMessage extends ISimpleFallback {
     
-    void translation(String text);
+    void setTranslation(String text);
 
 }

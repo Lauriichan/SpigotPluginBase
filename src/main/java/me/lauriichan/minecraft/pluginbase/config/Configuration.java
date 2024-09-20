@@ -104,6 +104,9 @@ public final class Configuration {
     }
 
     public <E> E get(final String pathUri, final Class<E> type) {
+        if (type.isEnum()) {
+            return type.cast(getEnum(pathUri, type.asSubclass(Enum.class)));
+        }
         final Object object = get(pathUri);
         if (object == null || !type.isAssignableFrom(object.getClass())) {
             return null;
@@ -112,6 +115,13 @@ public final class Configuration {
     }
 
     public <E> E get(final String pathUri, final Class<E> type, final E fallback) {
+        if (type.isEnum()) {
+            E value = type.cast(getEnum(pathUri, type.asSubclass(Enum.class)));
+            if (value == null) {
+                return fallback;
+            }
+            return value;
+        }
         final Object object = get(pathUri);
         if (object == null || !type.isAssignableFrom(object.getClass())) {
             return fallback;
@@ -217,6 +227,12 @@ public final class Configuration {
 
     public <E extends Enum<E>> E getEnum(final String pathUri, final Class<E> enumClazz, final E fallback) {
         final Object object = get(pathUri);
+        if (object == null) {
+            return fallback;
+        }
+        if (object.getClass() == enumClazz) {
+            return enumClazz.cast(object);
+        }
         if (!(object instanceof String)) {
             return fallback;
         }

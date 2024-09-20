@@ -4,8 +4,8 @@ import me.lauriichan.laylib.localization.IMessage;
 import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.ISingleConfigExtension;
+import me.lauriichan.minecraft.pluginbase.message.provider.ISimpleFallback;
 import me.lauriichan.minecraft.pluginbase.message.provider.ISimpleMessage;
-import me.lauriichan.minecraft.pluginbase.message.provider.ISimpleMessageProvider;
 
 public abstract class MessageConfig implements ISingleConfigExtension {
 
@@ -15,7 +15,7 @@ public abstract class MessageConfig implements ISingleConfigExtension {
             if (!(message instanceof ISimpleMessage)) {
                 continue;
             }
-            ((ISimpleMessage) message).translation(configuration.get(provider.getId(), String.class));
+            ((ISimpleMessage) message).setTranslation(configuration.get(provider.getId(), String.class));
         }
     }
 
@@ -24,8 +24,8 @@ public abstract class MessageConfig implements ISingleConfigExtension {
         for (final MessageProvider provider : providers) {
             message = provider.getMessage(language);
             if (message == null) {
-                if (provider instanceof ISimpleMessageProvider) {
-                    configuration.set(provider.getId(), ((ISimpleMessageProvider) provider).getFallback());
+                if (provider instanceof ISimpleFallback) {
+                    configuration.set(provider.getId(), ((ISimpleFallback) provider).fallback());
                 }
                 continue;
             }

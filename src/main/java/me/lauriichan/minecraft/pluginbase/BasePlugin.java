@@ -64,7 +64,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
         DISABLE_PLUGIN("disable", true),
         DISABLE_CORE("disable", false);
-
+        
         private final boolean isPlugin;
         private final String name;
 
@@ -79,6 +79,22 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
         public boolean isPlugin() {
             return isPlugin;
+        }
+        
+        public boolean isLoad() {
+            return this == LOAD_CORE || this == LOAD_PLUGIN || this == POST_LOAD_CORE;
+        }
+        
+        public boolean isEnable() {
+            return this == ENABLE_CORE || this == ENABLE_PLUGIN || this == POST_ENABLE_CORE;
+        }
+        
+        public boolean isReady() {
+            return this == READY_CORE || this == READY_PLUGIN;
+        }
+        
+        public boolean isDisable() {
+            return this == DISABLE_CORE || this == DISABLE_PLUGIN;
         }
 
     }
@@ -201,7 +217,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     @Override
     public final void onEnable() {
         if (actDisabled) {
-            getServer().getPluginManager().disablePlugin(this);
+            disablePlugin();
             return;
         }
         if (state != 1 && state != 4) {
@@ -349,7 +365,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         onArgumentSetup(argumentRegistry);
     }
 
-    private final void setupConfigs() {
+    protected void setupConfigs() {
         configMigrator = new ConfigMigrator(this);
         configManager = new ConfigManager(this);
         configManager.reload();
@@ -361,7 +377,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         pool.callInstances(listener -> pluginManager.registerEvents(listener, this));
     }
 
-    private final void registerMessages() {
+    protected void registerMessages() {
         final IExtensionPool<IMessageExtension> pool = extension(IMessageExtension.class, false);
         final SimpleMessageProviderFactory factory = new SimpleMessageProviderFactory();
         pool.callClasses(extension -> {
@@ -374,6 +390,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
             }
             messageManager.register(new AnnotationMessageSource(extension, factory));
         });
+    }
+    
+    protected void disablePlugin() {
+        getServer().getPluginManager().disablePlugin(this);
     }
 
     private final void onCoreReady() throws Throwable {

@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import me.lauriichan.laylib.localization.MessageProvider;
 
-public final class SimpleMessageProvider extends MessageProvider implements ISimpleMessageProvider {
+public final class SimpleMessageProvider extends MessageProvider {
 
     private final ConcurrentHashMap<String, SimpleMessage> messages = new ConcurrentHashMap<>();
     private final String fallback;
@@ -27,7 +27,6 @@ public final class SimpleMessageProvider extends MessageProvider implements ISim
         return message;
     }
 
-    @Override
     public String getFallback() {
         return fallback;
     }
