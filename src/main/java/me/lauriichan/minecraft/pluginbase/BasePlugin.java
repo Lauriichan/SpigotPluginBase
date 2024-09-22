@@ -30,10 +30,14 @@ import me.lauriichan.minecraft.pluginbase.config.ConfigWrapper;
 import me.lauriichan.minecraft.pluginbase.config.startup.IPropertyIO;
 import me.lauriichan.minecraft.pluginbase.config.startup.Property;
 import me.lauriichan.minecraft.pluginbase.config.startup.StartupConfig;
+import me.lauriichan.minecraft.pluginbase.data.DataManager;
+import me.lauriichan.minecraft.pluginbase.data.DataMigrator;
 import me.lauriichan.minecraft.pluginbase.extension.IConditionMap;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.extension.IExtensionPool;
 import me.lauriichan.minecraft.pluginbase.game.GameManager;
+import me.lauriichan.minecraft.pluginbase.game.GameProvider;
+import me.lauriichan.minecraft.pluginbase.game.GameState;
 import me.lauriichan.minecraft.pluginbase.inventory.paged.PagedInventoryRegistry;
 import me.lauriichan.minecraft.pluginbase.io.IOManager;
 import me.lauriichan.minecraft.pluginbase.listener.IListenerExtension;
@@ -126,6 +130,9 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     private volatile ConfigMigrator configMigrator;
     private volatile ConfigManager configManager;
     private volatile ConfigWrapper<StartupConfig> startupConfig;
+    
+    private volatile DataMigrator dataMigrator;
+    private volatile DataManager dataManager;
 
     private volatile GameManager gameManager;
     
@@ -356,7 +363,9 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         setupConditionMap();
         registerMessages();
         setupArgumentRegistry();
+        setupIO();
         setupConfigs();
+        setupData();
         setupGameManager();
     }
 
@@ -375,12 +384,21 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         argumentRegistry.registerArgumentType(UUIDArgument.class);
         onArgumentSetup(argumentRegistry);
     }
+    
+    protected void setupIO() {
+        ioManager = new IOManager(this);
+    }
 
     protected void setupConfigs() {
-        ioManager = new IOManager(this);
         configMigrator = new ConfigMigrator(this);
         configManager = new ConfigManager(this);
         configManager.reload();
+    }
+    
+    protected void setupData() {
+        dataMigrator = new DataMigrator(this);
+        dataManager = new DataManager(this);
+        dataManager.reload();
     }
     
     private final void setupGameManager() {
@@ -418,8 +436,18 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     }
 
     private final void onCoreDisable() throws Throwable {
-        HandlerList.unregisterAll();
+        HandlerList.unregisterAll(bukkitPlugin());
+        disableGames();
         clearFields();
+    }
+    
+    private final void disableGames() {
+        for (GameProvider<?> provider : gameManager.getGames()) {
+            GameState<?>[] states = provider.states().toArray(GameState[]::new);
+            for (GameState<?> state : states) {
+                state.terminate();
+            }
+        }
     }
 
     private final void clearFields() {
@@ -512,6 +540,14 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
 
     public final ConfigManager configManager() {
         return configManager;
+    }
+
+    public final DataMigrator dataMigrator() {
+        return dataMigrator;
+    }
+
+    public final DataManager dataManager() {
+        return dataManager;
     }
     
     public final GameManager gameManager() {

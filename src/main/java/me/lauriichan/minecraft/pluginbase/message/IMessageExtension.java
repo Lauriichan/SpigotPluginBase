@@ -5,5 +5,5 @@ import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 
 @ExtensionPoint
 public interface IMessageExtension extends IExtension {
-
+    
 }

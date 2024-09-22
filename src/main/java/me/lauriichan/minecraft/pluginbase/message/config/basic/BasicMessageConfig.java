@@ -2,6 +2,7 @@ package me.lauriichan.minecraft.pluginbase.message.config.basic;
 
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.localization.MessageManager;
+import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.ConditionConstant;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
@@ -31,12 +32,12 @@ public class BasicMessageConfig extends MessageConfig {
     }
 
     @Override
-    public void onLoad(final Configuration configuration) throws Exception {
+    public void onLoad(ISimpleLogger logger, final Configuration configuration) throws Exception {
         loadMessages(configuration, Actor.DEFAULT_LANGUAGE, messageManager.getProviders());
     }
 
     @Override
-    public void onSave(final Configuration configuration) throws Exception {
+    public void onSave(ISimpleLogger logger, final Configuration configuration) throws Exception {
         saveMessages(configuration, Actor.DEFAULT_LANGUAGE, messageManager.getProviders());
     }
 

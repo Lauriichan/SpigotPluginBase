@@ -16,10 +16,10 @@ import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 @ExtensionPoint
 public abstract class PhasedListener implements IExtension {
 
-    private final Class<? extends Game> gameType;
+    private final Class<? extends Game<?>> gameType;
     private final ObjectList<PhasedEventExecutor> executors;
 
-    public PhasedListener(final Class<? extends Game> gameType, final ISimpleLogger logger) {
+    public PhasedListener(final Class<? extends Game<?>> gameType, final ISimpleLogger logger) {
         this.gameType = gameType;
         ObjectArrayList<PhasedEventExecutor> executors = new ObjectArrayList<>();
         Class<?> listenerClass = getClass();
@@ -67,7 +67,7 @@ public abstract class PhasedListener implements IExtension {
         this.executors = ObjectLists.unmodifiable(executors);
     }
 
-    public final Class<? extends Game> gameType() {
+    public final Class<? extends Game<?>> gameType() {
         return gameType;
     }
 

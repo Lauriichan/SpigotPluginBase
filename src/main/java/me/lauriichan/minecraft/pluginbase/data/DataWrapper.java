@@ -1,12 +1,13 @@
-package me.lauriichan.minecraft.pluginbase.config;
+package me.lauriichan.minecraft.pluginbase.data;
 
 import java.util.Objects;
 
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.data.IDataHandler.Wrapper;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
-public final class ConfigWrapper<T extends IConfigExtension> {
+public final class DataWrapper<T, D extends IFileDataExtension<T>> implements IDataWrapper<T, D> {
 
     public static final int SUCCESS = 0x00;
     public static final int SKIPPED = 0x01;
@@ -31,51 +32,56 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_MIGRATE || state == FAIL_DATA_SAVE;
     }
     
-    public static <S extends ISingleConfigExtension> ConfigWrapper<S> single(final BasePlugin<?> plugin, final S extension) {
-        return new ConfigWrapper<>(plugin, extension, extension.path());
+    public static <T, D extends ISingleDataExtension<T>> DataWrapper<T, D> single(final BasePlugin<?> plugin, final D extension) {
+        return new DataWrapper<>(plugin, extension, extension.path());
     }
 
     private final ISimpleLogger logger;
-    private final ConfigMigrator migrator;
+    private final DataMigrator migrator;
 
     private final String path;
     
-    private final T config;
-    private final Class<T> configType;
+    private final D data;
+    private final Class<D> dataType;
     
     private final IDataSource source;
-    private final IConfigHandler handler;
+    private final IDataHandler<T> handler;
 
     private volatile long lastTimeModified = -1L;
     
     @SuppressWarnings("unchecked")
-    public ConfigWrapper(final BasePlugin<?> plugin, final T extension, final String path) {
+    public DataWrapper(final BasePlugin<?> plugin, final D extension, final String path) {
         this.logger = plugin.logger();
-        this.migrator = plugin.configMigrator();
+        this.migrator = plugin.dataMigrator();
         this.path = path;
-        this.config = Objects.requireNonNull(extension, "Config extension can't be null");
-        this.configType = (Class<T>) config.getClass();
+        this.data = Objects.requireNonNull(extension, "Data extension can't be null");
+        this.dataType = (Class<D>) data.getClass();
         this.source = Objects.requireNonNull(plugin.resource(path), "Couldn't find data source at '" + path + "'");
-        this.handler = Objects.requireNonNull(extension.handler(), "Config handler can't be null");
+        this.handler = Objects.requireNonNull(extension.handler(), "Data handler can't be null");
     }
 
-    public T config() {
-        return config;
+    @Override
+    public D data() {
+        return data;
     }
-    
-    public Class<T> configType() {
-        return configType;
+
+    @Override
+    public Class<D> dataType() {
+        return dataType;
     }
-    
+
+    @Override
     public String path() {
         return path;
     }
 
+    @Override
     public IDataSource source() {
         return source;
     }
 
-    public IConfigHandler handler() {
+    @Override
+    public IDataHandler<T> handler() {
         return handler;
     }
 
@@ -83,100 +89,101 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         return lastTimeModified;
     }
 
+    @Override
     public int reload(final boolean wipeAfterLoad) {
-        final Configuration configuration = new Configuration();
+        Wrapper<T> value = new Wrapper<>();
         if (source.exists()) {
-            if (lastTimeModified == source.lastModified() && !config.isModified()) {
+            if (lastTimeModified == source.lastModified() && !data.isModified()) {
                 return SKIPPED;
             }
-            configuration.clear();
             if (migrator != null) {
                 try {
-                    handler.load(configuration, source, true);
+                    handler.load(value, source);
                     lastTimeModified = source.lastModified();
                 } catch (final Exception exception) {
-                    logger.warning("Failed to load configuration from '{0}'!", exception, path);
+                    logger.warning("Failed to load data from '{0}'!", exception, path);
                     return FAIL_IO_LOAD;
                 }
-                int version = configuration.getInt("version", 0);
-                if (migrator.needsMigration(configType, version)) {
+                int version = value.version();
+                if (migrator.needsMigration(dataType, version)) {
                     try {
-                        int newVersion = migrator.migrate(logger, version, configuration, config);
-                        configuration.set("version", newVersion);
-                    } catch (ConfigMigrationFailedException exception) {
-                        logger.warning("Failed to migrate configuration data of '{0}'!", exception, path);
+                        int newVersion = migrator.migrate(logger, version, value, data);
+                        value.version(newVersion);
+                    } catch (DataMigrationFailedException exception) {
+                        logger.warning("Failed to migrate data of '{0}'!", exception, path);
                         return FAIL_DATA_MIGRATE;
                     }
                     try {
-                        handler.save(configuration, source);
+                        handler.save(value, source);
                     } catch(final Exception exception) {
-                        logger.warning("Failed to save migrated configuration to '{0}'!", exception, path);
+                        logger.warning("Failed to save migrated to '{0}'!", exception, path);
                         return FAIL_IO_SAVE;
                     }
                 }
                 try {
-                    handler.load(configuration, source, false);
+                    handler.load(value, source);
                     lastTimeModified = source.lastModified();
                 } catch (final Exception exception) {
-                    logger.warning("Failed to load configuration from '{0}'!", exception, path);
+                    logger.warning("Failed to load data from '{0}'!", exception, path);
                     return FAIL_IO_LOAD;
                 }
             }
         } else {
             try {
-                config.onPropergate(logger, configuration);
+                data.onPropergate(logger, value);
             } catch (final Exception exception) {
-                logger.warning("Failed to propergate configuration data of '{0}'!", exception, path);
+                logger.warning("Failed to propergate data of '{0}'!", exception, path);
                 return FAIL_DATA_PROPERGATE;
             }
         }
         try {
-            config.onLoad(logger, configuration);
+            data.onLoad(logger, value);
         } catch (final Exception exception) {
-            logger.warning("Failed to load configuration data of '{0}'!", exception, path);
+            logger.warning("Failed to load data of '{0}'!", exception, path);
             return FAIL_DATA_LOAD;
         }
         if (wipeAfterLoad) {
-            configuration.clear();
+            value.value(null);
         }
         try {
-            config.onSave(logger, configuration);
+            data.onSave(logger, value);
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration data of '{0}'!", exception, path);
+            logger.warning("Failed to save data of '{0}'!", exception, path);
             return FAIL_DATA_SAVE;
         }
         if (migrator != null) {
-            configuration.set("version", migrator.getTargetVersion(configType));
+            value.version(migrator.getTargetVersion(dataType));
         }
         try {
-            handler.save(configuration, source);
+            handler.save(value, source);
             lastTimeModified = source.lastModified();
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration to '{0}'!", exception, path);
+            logger.warning("Failed to save data to '{0}'!", exception, path);
             return FAIL_IO_SAVE;
         }
         return SUCCESS;
     }
 
+    @Override
     public int save(final boolean force) {
-        if (!force && !config.isModified() && source.exists()) {
+        if (!force && !data.isModified() && source.exists()) {
             return SKIPPED;
         }
-        final Configuration configuration = new Configuration();
+        final Wrapper<T> value = new Wrapper<>();
         try {
-            config.onSave(logger, configuration);
+            data.onSave(logger, value);
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration data of '{0}'!", exception, path);
+            logger.warning("Failed to save data of '{0}'!", exception, path);
             return FAIL_DATA_SAVE;
         }
         if (migrator != null) {
-            configuration.set("version", migrator.getTargetVersion(configType));
+            value.version(migrator.getTargetVersion(dataType));
         }
         try {
-            handler.save(configuration, source);
+            handler.save(value, source);
             lastTimeModified = source.lastModified();
         } catch (final Exception exception) {
-            logger.warning("Failed to save configuration to '{0}'!", exception, path);
+            logger.warning("Failed to save data to '{0}'!", exception, path);
             return FAIL_IO_SAVE;
         }
         return SUCCESS;

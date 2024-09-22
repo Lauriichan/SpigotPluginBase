@@ -37,10 +37,10 @@ public final class ConfigManager {
         return reload(false);
     }
 
-    public Object2IntMap<ConfigWrapper<?>> reload(boolean force) {
+    public Object2IntMap<ConfigWrapper<?>> reload(boolean wipeAfterLoad) {
         ObjectList<ConfigWrapper<?>> wrappers = wrappers();
         Object2IntArrayMap<ConfigWrapper<?>> results = new Object2IntArrayMap<>(wrappers.size());
-        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(force)));
+        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(wipeAfterLoad)));
         return Object2IntMaps.unmodifiable(results);
     }
 

@@ -9,6 +9,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectCollection;
+import it.unimi.dsi.fastutil.objects.ObjectCollections;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
@@ -23,12 +25,12 @@ public final class GameManager {
 
     private final BasePlugin<?> plugin;
     
-    private final Object2ObjectMap<Class<? extends Game>, GameProvider<?>> type2Game;
+    private final Object2ObjectMap<Class<? extends Game<?>>, GameProvider<?>> type2Game;
     private final Object2ObjectMap<String, GameProvider<?>> id2Game;
 
     public GameManager(final BasePlugin<?> plugin) {
         this.plugin = plugin;
-        Object2ObjectArrayMap<Class<? extends Game>, ObjectArrayList<Class<? extends Phase<?>>>> phaseMap = new Object2ObjectArrayMap<>();
+        Object2ObjectArrayMap<Class<? extends Game<?>>, ObjectArrayList<Class<? extends Phase<?>>>> phaseMap = new Object2ObjectArrayMap<>();
         plugin.extension(Phase.class, false).callClasses(phaseType -> {
             GamePhase phaseInfo = phaseType.getDeclaredAnnotation(GamePhase.class);
             if (phaseInfo.game() == null) {
@@ -42,11 +44,11 @@ public final class GameManager {
             ObjectArrayList<Class<? extends Phase<?>>> list = phaseMap.get(phaseInfo.game());
             if (list == null) {
                 list = new ObjectArrayList<>();
-                phaseMap.put(phaseInfo.game(), list);
+                phaseMap.put((Class<? extends Game<?>>) phaseInfo.game(), list);
             }
             list.add((Class<? extends Phase<?>>) phaseType);
         });
-        Object2ObjectArrayMap<Class<? extends Game>, ObjectArrayList<Class<? extends Task<?>>>> taskMap = new Object2ObjectArrayMap<>();
+        Object2ObjectArrayMap<Class<? extends Game<?>>, ObjectArrayList<Class<? extends Task<?>>>> taskMap = new Object2ObjectArrayMap<>();
         plugin.extension(Task.class, false).callClasses(taskType -> {
             GameTask taskInfo = taskType.getDeclaredAnnotation(GameTask.class);
             if (taskInfo.game() == null) {
@@ -60,7 +62,7 @@ public final class GameManager {
             ObjectArrayList<Class<? extends Task<?>>> list = taskMap.get(taskInfo.game());
             if (list == null) {
                 list = new ObjectArrayList<>();
-                taskMap.put(taskInfo.game(), list);
+                taskMap.put((Class<? extends Game<?>>) taskInfo.game(), list);
             }
             list.add((Class<? extends Task<?>>) taskType);
         });
@@ -75,7 +77,7 @@ public final class GameManager {
                 listenerMap.put(listener.gameType(), list);
             }
         });
-        Object2ObjectOpenHashMap<Class<? extends Game>, GameProvider<?>> type2Game = new Object2ObjectOpenHashMap<>();
+        Object2ObjectOpenHashMap<Class<? extends Game<?>>, GameProvider<?>> type2Game = new Object2ObjectOpenHashMap<>();
         Object2ObjectOpenHashMap<String, GameProvider<?>> id2Game = new Object2ObjectOpenHashMap<>();
         plugin.extension(Game.class, false).callClasses(gameType -> {
             GameId gameId = gameType.getDeclaredAnnotation(GameId.class);
@@ -109,7 +111,7 @@ public final class GameManager {
                 listeners = ObjectLists.unmodifiable(listeners);
             }
             GameProvider<?> provider = new GameProvider<>(this, gameId.value(), gameType, phases, tasks, listeners);
-            type2Game.put(gameType, provider);
+            type2Game.put((Class<? extends Game<?>>) gameType, provider);
             id2Game.put(gameId.value(), provider);
         });
         phaseMap.clear();
@@ -121,12 +123,16 @@ public final class GameManager {
         return plugin;
     }
     
-    public <G extends Game> GameProvider<G> get(String id) {
+    public <G extends Game<G>> GameProvider<G> get(String id) {
         return (GameProvider<G>) id2Game.get(id);
     }
     
-    public <G extends Game> GameProvider<G> get(Class<G> gameType) {
+    public <G extends Game<G>> GameProvider<G> get(Class<G> gameType) {
         return (GameProvider<G>) type2Game.get(gameType);
+    }
+    
+    public ObjectCollection<GameProvider<?>> getGames() {
+        return ObjectCollections.unmodifiable(id2Game.values());
     }
 
 }

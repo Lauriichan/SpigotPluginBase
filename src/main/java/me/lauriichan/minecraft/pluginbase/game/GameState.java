@@ -9,9 +9,10 @@ import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.laylib.reflection.JavaAccess;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.game.phased.IPhased;
+import me.lauriichan.minecraft.pluginbase.util.instance.SimpleInstanceInvoker;
 import me.lauriichan.minecraft.pluginbase.util.tick.AbstractTickTimer;
 
-public final class GameState<G extends Game> {
+public final class GameState<G extends Game<G>> {
 
     private static class StateTickTimer extends AbstractTickTimer {
         private final GameState<?> state;
@@ -32,6 +33,8 @@ public final class GameState<G extends Game> {
     private final ISimpleLogger logger;
 
     private final StateTickTimer timer = new StateTickTimer(this);
+    
+    private final SimpleInstanceInvoker stateInvoker;
 
     private final GameProvider<G> provider;
     private final G game;
@@ -52,13 +55,14 @@ public final class GameState<G extends Game> {
         this.plugin = provider.manager().plugin();
         this.logger = plugin.logger();
         this.name = name;
+        this.stateInvoker = new SimpleInstanceInvoker(plugin.pluginInvoker());
         this.provider = provider;
-        this.game = JavaAccess.PLATFORM.instance(provider.gameType());
+        this.game = invoke(provider.gameType());
         ObjectArrayList<Phase<G>> phases = new ObjectArrayList<>(provider.phases().size());
-        provider.phases().forEach(phaseType -> phases.add((Phase<G>) JavaAccess.PLATFORM.instance(phaseType)));
+        provider.phases().forEach(phaseType -> phases.add((Phase<G>) invoke(phaseType)));
         this.phases = ObjectLists.unmodifiable(phases);
         ObjectArrayList<IPhased<? extends Task<G>>> tasks = new ObjectArrayList<>(provider.tasks().size());
-        provider.tasks().forEach(type -> tasks.add(type.newRef()));
+        provider.tasks().forEach(type -> tasks.add(type.newRef(this::invoke)));
         this.tasks = ObjectLists.unmodifiable(tasks);
         this.activeTasks = tasks.isEmpty() ? ObjectLists.emptyList() :  ObjectLists.synchronize(new ObjectArrayList<>(tasks.size()));
         ObjectArrayList<PhasedEventListener> listeners = new ObjectArrayList<>(provider.listeners().size());
@@ -74,6 +78,14 @@ public final class GameState<G extends Game> {
             phases.get(phaseIdx).onBegin(this);
         }
         timer.start();
+    }
+    
+    public <T> T invoke(Class<T> type) {
+        try {
+            return stateInvoker.invoke(type, this);
+        } catch(Throwable throwable) {
+            throw new IllegalStateException("Failed to create instance of class '" + type.getName() + "'");
+        }
     }
     
     public BasePlugin<?> plugin() {
@@ -95,6 +107,25 @@ public final class GameState<G extends Game> {
     public final G game() {
         return game;
     }
+    
+    public final int phaseIndex() {
+        return phaseIdx;
+    }
+    
+    public final Phase<G> phase() {
+        if (phaseIdx == -1) {
+            return null;
+        }
+        return phases.get(phaseIdx);
+    }
+
+    public final <P extends Phase<G>> P phase(Class<P> phaseType) {
+        return phases.stream().filter(phase -> phaseType.isAssignableFrom(phase.getClass())).findFirst().map(phaseType::cast).orElse(null);
+    }
+
+    public final <T extends Task<G>> T task(Class<T> taskType) {
+        return phases.stream().filter(phase -> taskType.isAssignableFrom(phase.getClass())).findFirst().map(taskType::cast).orElse(null);
+    }
 
     private void tick(long delta) {
         game.onTick(this, delta);
@@ -110,7 +141,9 @@ public final class GameState<G extends Game> {
                             terminate();
                             return;
                         }
+                        game.onStop(this);
                         phaseIdx = 0;
+                        game.onStart(this, timer);
                     }
                     activatePhase(phases.get(phaseIdx));
                 } finally {
@@ -151,15 +184,24 @@ public final class GameState<G extends Game> {
     private void activatePhase(Phase<G> phase) {
         phase.onBegin(this);
         if(!tasks.isEmpty()) {
+            ObjectList<Task<G>> active = new ObjectArrayList<>();
             if (!activeTasks.isEmpty()) {
+                active.addAll(activeTasks);
                 activeTasks.clear();
             }
             Class<? extends Phase<?>> phaseType = (Class<? extends Phase<?>>) phase.getClass();
             tasks.forEach(task -> {
+                if (activeTasks.contains(task.get())) {
+                    return;
+                }
                 if (task.shouldBeActive(phaseType)) {
                     activeTasks.add(task.get());
+                    if (active.remove(task.get())) {
+                        task.get().onStart(this);
+                    }
                 }
             });
+            active.forEach(task -> task.onStop(this));
         }
         if (!provider.listeners().isEmpty()) {
             if (!activeListeners.isEmpty()) {
@@ -184,9 +226,16 @@ public final class GameState<G extends Game> {
         for (PhasedEventListener listener : activeListeners) {
             listener.unregister();
         }
+        for (Task<G> task : activeTasks) {
+            task.onStop(this);
+        }        
+        Phase<G> phase = phase();
+        if (phase != null) {
+            phase.onEnd(this);
+        }
+        game.onStop(this);
         activeListeners.clear();
         activeTasks.clear();
-        game.onStop(this);
     }
 
     public final void pause() {

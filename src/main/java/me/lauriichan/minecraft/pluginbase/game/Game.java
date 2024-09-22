@@ -5,19 +5,19 @@ import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.util.tick.AbstractTickTimer;
 
 @ExtensionPoint
-public abstract class Game implements IExtension {
+public abstract class Game<G extends Game<G>> implements IExtension {
     
-    protected void onStart(GameState<?> state, AbstractTickTimer timer) {}
+    protected void onStart(GameState<G> state, AbstractTickTimer timer) {}
     
-    protected void onTick(GameState<?> state, long tick) {}
+    protected void onTick(GameState<G> state, long delta) {}
     
-    protected void onTickPostPhase(GameState<?> state, long tick) {}
+    protected void onTickPostPhase(GameState<G> state, long delta) {}
     
-    protected void onTickPostTask(GameState<?> state, long tick) {}
+    protected void onTickPostTask(GameState<G> state, long delta) {}
     
-    protected void onStop(GameState<?> state) {}
+    protected void onStop(GameState<G> state) {}
     
-    protected boolean shouldRestart(GameState<?> state) {
+    protected boolean shouldRestart(GameState<G> state) {
         return true;
     }
 

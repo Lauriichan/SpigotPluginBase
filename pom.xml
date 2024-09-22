@@ -47,6 +47,12 @@
 			<artifactId>json</artifactId>
 			<version>${laylib.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>net.md-5</groupId>
+			<artifactId>bungeecord-chat</artifactId>
+			<version>1.21-R0.1-SNAPSHOT</version>
+		</dependency>
 
 		<dependency>
 			<groupId>me.lauriichan.maven</groupId>
@@ -64,6 +70,12 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
+			<version>${server.version}-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot</artifactId>
 			<version>${server.version}-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>

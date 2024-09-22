@@ -4,11 +4,13 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectCollection;
+import it.unimi.dsi.fastutil.objects.ObjectCollections;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.minecraft.pluginbase.game.phased.PhasedType;
 
-public final class GameProvider<G extends Game> {
+public final class GameProvider<G extends Game<G>> {
 
     private final GameManager manager;
 
@@ -80,6 +82,10 @@ public final class GameProvider<G extends Game> {
 
     public GameState<G> getState(String name) {
         return states.get(name);
+    }
+    
+    public ObjectCollection<GameState<G>> states() {
+        return ObjectCollections.unmodifiable(states.values());
     }
 
     void remove(GameState<G> state) {

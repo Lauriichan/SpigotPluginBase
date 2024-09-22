@@ -1,8 +1,8 @@
 package me.lauriichan.minecraft.pluginbase.config;
 
-import me.lauriichan.minecraft.pluginbase.extension.IExtension;
+import me.lauriichan.laylib.logger.ISimpleLogger;
 
-public interface IConfigExtension extends IExtension {
+public interface IConfigExtension {
     
     default String name() {
         return getClass().getSimpleName();
@@ -14,10 +14,10 @@ public interface IConfigExtension extends IExtension {
         return false;
     }
     
-    default void onPropergate(final Configuration configuration) throws Exception {}
+    default void onPropergate(final ISimpleLogger logger, final Configuration configuration) throws Exception {}
 
-    default void onLoad(final Configuration configuration) throws Exception {}
+    default void onLoad(final ISimpleLogger logger, final Configuration configuration) throws Exception {}
 
-    default void onSave(final Configuration configuration) throws Exception {}
+    default void onSave(final ISimpleLogger logger, final Configuration configuration) throws Exception {}
 
 }

@@ -32,6 +32,9 @@ public final class JsonConfigHandler implements IConfigHandler {
     private final IOManager ioManager;
     
     private JsonConfigHandler() {
+        if (JSON != null) {
+            throw new UnsupportedOperationException("Singleton");
+        }
         ioManager = BasePlugin.getBasePlugin().ioManager();
     }
 

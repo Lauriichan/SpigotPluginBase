@@ -1,5 +1,7 @@
 package me.lauriichan.minecraft.pluginbase.game.phased;
 
+import java.util.function.Function;
+
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.lauriichan.laylib.reflection.JavaAccess;
 import me.lauriichan.minecraft.pluginbase.game.Phase;
@@ -14,6 +16,11 @@ public final class PhasedType<T> extends PhasedRef<Class<T>> {
         private PhasedTypeRef(PhasedType<T> type) {
             this.type = type;
             this.instance = JavaAccess.PLATFORM.instance(type.instance);
+        }
+
+        private PhasedTypeRef(PhasedType<T> type, Function<Class<T>, T> invoker) {
+            this.type = type;
+            this.instance = invoker.apply(type.instance);
         }
 
         public PhasedType<T> type() {
@@ -48,6 +55,10 @@ public final class PhasedType<T> extends PhasedRef<Class<T>> {
 
     public PhasedTypeRef<T> newRef() {
         return new PhasedTypeRef<>(this);
+    }
+
+    public PhasedTypeRef<T> newRef(Function<Class<T>, T> invoker) {
+        return new PhasedTypeRef<>(this, invoker);
     }
 
 }
