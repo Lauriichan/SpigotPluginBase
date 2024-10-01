@@ -108,7 +108,7 @@ final class ExtensionPoolImpl<T extends IExtension> implements IExtensionPool<T>
             throw new IllegalArgumentException("The class '" + typeName + "' is not extendable!");
         }
         if (!extensionType.isAssignableFrom(type)) {
-            throw new IllegalArgumentException("The class '" + resolveFromClassPath(type.getName()) + "' can not be casted to '" + typeName + "'");
+            throw new IllegalArgumentException("The class '" + typeName + "' can not be casted to '" + typeName + "'");
         }
         final ISimpleLogger logger = plugin.logger();
         logger.debug("Processing extension '{0}'", typeName);

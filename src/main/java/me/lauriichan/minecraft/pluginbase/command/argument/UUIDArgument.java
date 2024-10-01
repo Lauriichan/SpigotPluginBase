@@ -50,7 +50,7 @@ public class UUIDArgument implements IArgumentType<UUID> {
         if (!collection) {
             return;
         }
-        List<Map.Entry<String, Integer>> list = LevenshteinDistance.rankByDistance(input, selection.stream().map(UUID::toString).toList());
+        List<Map.Entry<String, Integer>> list = LevenshteinDistance.rankByDistance(input, selection.stream().map(UUID::toString).collect(ObjectArrayList.toList()));
         double max = list.stream().map(Map.Entry::getValue).collect(Collectors.summingInt(Integer::intValue));
         for (int index = 0; index < list.size(); index++) {
             Map.Entry<String, Integer> entry = list.get(index);

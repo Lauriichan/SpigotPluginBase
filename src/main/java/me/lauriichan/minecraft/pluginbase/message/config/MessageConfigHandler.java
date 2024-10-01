@@ -1,4 +1,4 @@
-package me.lauriichan.minecraft.pluginbase.message.config.basic;
+package me.lauriichan.minecraft.pluginbase.message.config;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

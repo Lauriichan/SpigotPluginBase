@@ -165,6 +165,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
                 modified.removeLong(string);
                 data.onDeleted(logger, string);
             }
+            data.onDeleteDone(logger, this);
         }
     }
 

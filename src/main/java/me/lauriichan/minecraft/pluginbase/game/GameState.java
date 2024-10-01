@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.laylib.logger.ISimpleLogger;
-import me.lauriichan.laylib.reflection.JavaAccess;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.game.phased.IPhased;
 import me.lauriichan.minecraft.pluginbase.util.instance.SimpleInstanceInvoker;
@@ -84,7 +83,7 @@ public final class GameState<G extends Game<G>> {
         try {
             return stateInvoker.invoke(type, this);
         } catch(Throwable throwable) {
-            throw new IllegalStateException("Failed to create instance of class '" + type.getName() + "'");
+            throw new IllegalStateException("Failed to create instance of class '" + type.getName() + "'", throwable);
         }
     }
     

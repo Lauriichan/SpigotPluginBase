@@ -38,6 +38,7 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
 
             private final String name;
             private final ArrayList<String> aliases = new ArrayList<>();
+            private boolean translate = true;
             private String description;
             private String prefix;
 
@@ -62,13 +63,18 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
                 this.description = description;
                 return this;
             }
+            
+            public Builder translate(final boolean translate) {
+                this.translate = translate;
+                return this;
+            }
 
             public CommandDefinition build(final Plugin plugin) {
                 String prefix = this.prefix;
                 if (prefix == null || prefix.isBlank()) {
                     prefix = plugin.getName();
                 }
-                return new CommandDefinition(prefix.toLowerCase(Locale.ROOT), name, aliases, description);
+                return new CommandDefinition(prefix.toLowerCase(Locale.ROOT), name, aliases, description, translate);
             }
 
         }
@@ -77,12 +83,14 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
         private final String name;
         private final List<String> aliases;
         private final String description;
+        private final boolean translate;
 
-        public CommandDefinition(final String prefix, final String name, final List<String> aliases, final String description) {
+        public CommandDefinition(final String prefix, final String name, final List<String> aliases, final String description, final boolean translate) {
             this.prefix = prefix;
             this.name = name;
             this.aliases = Collections.unmodifiableList(aliases);
             this.description = description;
+            this.translate = translate;
         }
         
         public String prefix() {
@@ -99,6 +107,10 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
         
         public String description() {
             return description;
+        }
+        
+        public boolean translate() {
+            return translate;
         }
 
     }
@@ -190,7 +202,7 @@ public class BukkitCommandInjectableBridge<A extends BukkitActor<?>> extends Buk
         pluginCommand.setAliases(new ArrayList<>(definition.aliases()));
         pluginCommand.executor(this);
         pluginCommand.completer(this);
-        pluginCommand.setDescription(messageManager.translate(definition.description(), Actor.DEFAULT_LANGUAGE));
+        pluginCommand.setDescription(definition.translate() ? messageManager.translate(definition.description(), Actor.DEFAULT_LANGUAGE) : definition.description());
         commandMap.register(definition.prefix(), pluginCommand);
         return this;
     }

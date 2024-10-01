@@ -12,7 +12,6 @@ import me.lauriichan.laylib.json.io.JsonParser;
 import me.lauriichan.laylib.json.io.JsonWriter;
 import me.lauriichan.laylib.reflection.ClassUtil;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
-import me.lauriichan.minecraft.pluginbase.IBasePluginAccess;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.io.IOManager;
@@ -148,8 +147,8 @@ public final class JsonConfigHandler implements IConfigHandler {
             }
             return array;
         }
-        if (object instanceof Enum) {
-            return IJson.of(((Enum<?>) object).toString());
+        if (object != null && object.getClass().isEnum()) {
+            return IJson.of(object.toString());
         }
         try {
             return IJson.of(object);

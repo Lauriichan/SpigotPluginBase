@@ -6,14 +6,14 @@ import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
-public final class ConfigWrapper<T extends IConfigExtension> {
+public final class ConfigWrapper<T extends IConfigExtension> implements IConfigWrapper<T> {
 
     public static final int SUCCESS = 0x00;
     public static final int SKIPPED = 0x01;
-    
+
     public static final int FAIL_IO_LOAD = 0x11;
     public static final int FAIL_IO_SAVE = 0x12;
-    
+
     public static final int FAIL_DATA_PROPERGATE = 0x21;
     public static final int FAIL_DATA_LOAD = 0x22;
     public static final int FAIL_DATA_SAVE = 0x23;
@@ -30,7 +30,7 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     public static boolean isDataError(final int state) {
         return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_MIGRATE || state == FAIL_DATA_SAVE;
     }
-    
+
     public static <S extends ISingleConfigExtension> ConfigWrapper<S> single(final BasePlugin<?> plugin, final S extension) {
         return new ConfigWrapper<>(plugin, extension, extension.path());
     }
@@ -39,15 +39,15 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     private final ConfigMigrator migrator;
 
     private final String path;
-    
+
     private final T config;
     private final Class<T> configType;
-    
+
     private final IDataSource source;
     private final IConfigHandler handler;
 
     private volatile long lastTimeModified = -1L;
-    
+
     @SuppressWarnings("unchecked")
     public ConfigWrapper(final BasePlugin<?> plugin, final T extension, final String path) {
         this.logger = plugin.logger();
@@ -62,11 +62,7 @@ public final class ConfigWrapper<T extends IConfigExtension> {
     public T config() {
         return config;
     }
-    
-    public Class<T> configType() {
-        return configType;
-    }
-    
+
     public String path() {
         return path;
     }
@@ -83,7 +79,19 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         return lastTimeModified;
     }
 
-    public int reload(final boolean wipeAfterLoad) {
+    @Override
+    public Class<T> configType() {
+        return configType;
+    }
+
+    @Override
+    public int[] reload(boolean wipeAfterLoad) {
+        return new int[] {
+            reloadSingle(wipeAfterLoad)
+        };
+    }
+
+    public int reloadSingle(final boolean wipeAfterLoad) {
         final Configuration configuration = new Configuration();
         if (source.exists()) {
             if (lastTimeModified == source.lastModified() && !config.isModified()) {
@@ -109,18 +117,18 @@ public final class ConfigWrapper<T extends IConfigExtension> {
                     }
                     try {
                         handler.save(configuration, source);
-                    } catch(final Exception exception) {
+                    } catch (final Exception exception) {
                         logger.warning("Failed to save migrated configuration to '{0}'!", exception, path);
                         return FAIL_IO_SAVE;
                     }
                 }
-                try {
-                    handler.load(configuration, source, false);
-                    lastTimeModified = source.lastModified();
-                } catch (final Exception exception) {
-                    logger.warning("Failed to load configuration from '{0}'!", exception, path);
-                    return FAIL_IO_LOAD;
-                }
+            }
+            try {
+                handler.load(configuration, source, false);
+                lastTimeModified = source.lastModified();
+            } catch (final Exception exception) {
+                logger.warning("Failed to load configuration from '{0}'!", exception, path);
+                return FAIL_IO_LOAD;
             }
         } else {
             try {
@@ -158,7 +166,14 @@ public final class ConfigWrapper<T extends IConfigExtension> {
         return SUCCESS;
     }
 
-    public int save(final boolean force) {
+    @Override
+    public int[] save(boolean forceSave) {
+        return new int[] {
+            saveSingle(forceSave)
+        };
+    }
+
+    public int saveSingle(final boolean force) {
         if (!force && !config.isModified() && source.exists()) {
             return SKIPPED;
         }

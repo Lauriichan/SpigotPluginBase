@@ -159,7 +159,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             if (!field.getType().isPrimitive()) {
                 needObjectsImport = true;
             }
-            clazz.addField("private final %2$s generatedDefault$%1$s = %1$s;".formatted(field.getName(),
+            clazz.addField(String.format("private final %2$s generatedDefault$%1$s = %1$s;", field.getName(),
                 field.getType().getQualifiedNameWithGenerics()));
             removeMethod(clazz, field.getName());
             removeMethod(clazz, "default$" + field.getName());
@@ -321,12 +321,12 @@ public class ConfigSourceTransformer implements ISourceTransformer {
     }
 
     private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String[] content) {
-        source.addMethod(string(content).formatted(field.getName(), field.getType().getQualifiedNameWithGenerics()));
+        source.addMethod(String.format(string(content), field.getName(), field.getType().getQualifiedNameWithGenerics()));
     }
 
     private void addFieldMethod(final JavaClassSource source, final FieldSource<JavaClassSource> field, final String[] complex,
         final String[] primitive) {
-        source.addMethod(string(field.getType().isPrimitive() ? primitive : complex).formatted(field.getName(),
+        source.addMethod(String.format(string(field.getType().isPrimitive() ? primitive : complex), field.getName(),
             field.getType().getQualifiedNameWithGenerics()));
     }
 

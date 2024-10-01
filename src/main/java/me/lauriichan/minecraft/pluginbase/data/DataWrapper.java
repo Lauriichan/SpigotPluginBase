@@ -120,13 +120,13 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
                         return FAIL_IO_SAVE;
                     }
                 }
-                try {
-                    handler.load(value, source);
-                    lastTimeModified = source.lastModified();
-                } catch (final Exception exception) {
-                    logger.warning("Failed to load data from '{0}'!", exception, path);
-                    return FAIL_IO_LOAD;
-                }
+            }
+            try {
+                handler.load(value, source);
+                lastTimeModified = source.lastModified();
+            } catch (final Exception exception) {
+                logger.warning("Failed to load data from '{0}'!", exception, path);
+                return FAIL_IO_LOAD;
             }
         } else {
             try {

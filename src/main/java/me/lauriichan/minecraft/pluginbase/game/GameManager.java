@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.objects.ObjectCollections;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.util.ReflectionUtil;
 
 public final class GameManager {
 
@@ -33,10 +34,10 @@ public final class GameManager {
         Object2ObjectArrayMap<Class<? extends Game<?>>, ObjectArrayList<Class<? extends Phase<?>>>> phaseMap = new Object2ObjectArrayMap<>();
         plugin.extension(Phase.class, false).callClasses(phaseType -> {
             GamePhase phaseInfo = phaseType.getDeclaredAnnotation(GamePhase.class);
-            if (phaseInfo.game() == null) {
+            if (phaseInfo == null || phaseInfo.game() == null) {
                 throw new IllegalStateException("Phase '" + phaseType.getName() + "' doesn't provide the game it is related to");
             }
-            Type actualGameType = phaseType.getGenericInterfaces()[0];
+            Class<?> actualGameType = ReflectionUtil.getGenericOf(phaseType, Phase.class, 0);
             if (!actualGameType.equals(phaseInfo.game())) {
                 throw new IllegalStateException("Phase '" + phaseType.getName() + "' declares to be related to '" + phaseInfo.game()
                     + "' but is related to '" + actualGameType.getTypeName() + "'");
@@ -54,7 +55,7 @@ public final class GameManager {
             if (taskInfo.game() == null) {
                 throw new IllegalStateException("Task '" + taskType.getName() + "' doesn't provide the game it is related to");
             }
-            Type actualGameType = taskType.getGenericInterfaces()[0];
+            Class<?> actualGameType = ReflectionUtil.getGenericOf(taskType, Task.class, 0);
             if (!actualGameType.equals(taskInfo.game())) {
                 throw new IllegalStateException("Task '" + taskType.getName() + "' declares to be related to '" + taskInfo.game()
                     + "' but is related to '" + actualGameType.getTypeName() + "'");
@@ -92,8 +93,8 @@ public final class GameManager {
             if (phases == null) {
                 phases = ObjectLists.emptyList();
             } else {
-                phases.sort((p1, p2) -> Integer.compare(p2.getDeclaredAnnotation(GamePhase.class).orderId(),
-                    p1.getDeclaredAnnotation(GamePhase.class).orderId()));
+                phases.sort((p1, p2) -> Integer.compare(p1.getDeclaredAnnotation(GamePhase.class).orderId(),
+                    p2.getDeclaredAnnotation(GamePhase.class).orderId()));
                 phases = ObjectLists.unmodifiable(phases);
             }
             ObjectList<Class<? extends Task<?>>> tasks = taskMap.get(gameType);

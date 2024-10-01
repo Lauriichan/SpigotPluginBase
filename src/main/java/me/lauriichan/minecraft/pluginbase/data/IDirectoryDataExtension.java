@@ -52,6 +52,10 @@ public interface IDirectoryDataExtension<T> extends IDataExtension<T> {
         return true;
     }
     
+    default boolean saveNewDataAfterLoad() {
+        return false;
+    }
+    
     default boolean removeNewDataOnReload() {
         return true;
     }
@@ -65,6 +69,8 @@ public interface IDirectoryDataExtension<T> extends IDataExtension<T> {
     default void onLoad(final ISimpleLogger logger, final FileData<T> value) throws Exception {}
     
     default void onLoadEnd(final ISimpleLogger logger) {}
+    
+    default void onDeleteDone(final ISimpleLogger logger, final DirectoryDataWrapper<?, ?> wrapper) {}
     
     default void onDeleted(final ISimpleLogger logger, final String name) {}
     
