@@ -71,7 +71,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
 
     final boolean apply(GuiInventoryUpdater updater) {
         boolean title = applyTitle(updater.title());
-        boolean type = applyChestSize(updater.chestSize()) || applyType(updater.type());
+        boolean type = applyType(updater.type()) || applyChestSize(updater.chestSize());
         if (!title && !type) {
             return false;
         }
@@ -135,9 +135,9 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         }
         this.chestSize = chestSize;
         this.size = chestSize.inventorySize();
-        this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
-        this.rowAmount = inventory.getSize() / columnAmount;
         this.type = InventoryType.CHEST;
+        this.columnAmount = IGuiInventory.getColumnAmount(type);
+        this.rowAmount = size / columnAmount;
         return true;
     }
 

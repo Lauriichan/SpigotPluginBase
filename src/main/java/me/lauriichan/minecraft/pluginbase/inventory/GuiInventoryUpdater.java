@@ -37,7 +37,7 @@ public final class GuiInventoryUpdater implements IGuiInventoryUpdater {
     @Override
     public GuiInventoryUpdater chestSize(ChestSize size) {
         this.size = size;
-        this.type = InventoryType.CHEST;
+        this.type = null;
         return this;
     }
 
