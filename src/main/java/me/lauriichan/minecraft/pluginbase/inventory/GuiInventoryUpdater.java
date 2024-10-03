@@ -48,8 +48,8 @@ public final class GuiInventoryUpdater implements IGuiInventoryUpdater {
 
     @Override
     public GuiInventoryUpdater type(InventoryType type) {
-        this.type = type;
         this.size = null;
+        this.type = type;
         return this;
     }
 

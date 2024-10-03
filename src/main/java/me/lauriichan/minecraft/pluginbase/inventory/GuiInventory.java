@@ -109,8 +109,8 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
         }
         this.type = type == InventoryType.ENDER_CHEST ? InventoryType.CHEST : type;
         this.size = type.getDefaultSize();
-        this.columnAmount = IGuiInventory.getColumnAmount(inventory.getType());
-        this.rowAmount = inventory.getSize() / columnAmount;
+        this.columnAmount = IGuiInventory.getColumnAmount(type);
+        this.rowAmount = size / columnAmount;
         this.chestSize = columnAmount == 9 && rowAmount < 7 ? SIZES[rowAmount - 1] : null;
         return true;
     }
@@ -181,8 +181,11 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
                 return;
             }
         }
-        inventory = chestSize != null ? Bukkit.createInventory(this, chestSize.inventorySize(), BukkitColor.apply(title))
-            : Bukkit.createInventory(this, type, BukkitColor.apply(title));
+        if (chestSize != null) {
+            inventory = Bukkit.createInventory(this, chestSize.inventorySize(), BukkitColor.apply(title));
+        } else {
+            inventory = Bukkit.createInventory(this, type, BukkitColor.apply(title));
+        }
         inventoryChanged.set(true);
         try {
             for (final HumanEntity entity : entities) {
