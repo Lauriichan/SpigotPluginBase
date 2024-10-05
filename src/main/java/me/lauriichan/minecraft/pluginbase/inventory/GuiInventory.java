@@ -9,8 +9,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
+import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
 import me.lauriichan.minecraft.pluginbase.util.attribute.Attributable;
-import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 
 public final class GuiInventory extends Attributable implements InventoryHolder, IGuiInventory {
 
@@ -169,22 +169,23 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
     }
 
     private void internalUpdate(boolean titleOnlyChanged) {
-        updateTitleOnOpen = titleOnlyChanged;
         HumanEntity[] entities = EMPTY_ENTITIES;
+        String title = ComponentBuilder.parse(this.title).asLegacyText();
         if (inventory != null) {
             entities = inventory.getViewers().toArray(HumanEntity[]::new);
             if (titleOnlyChanged) {
-                String updatedTitle = BukkitColor.apply(title);
+                updateTitleOnOpen = true;
                 for (HumanEntity entity : entities) {
-                    GuiInventoryReflection.updateTitle(entity, inventory, updatedTitle);
+                    GuiInventoryReflection.updateTitle(entity, inventory, title);
                 }
                 return;
             }
         }
+        updateTitleOnOpen = false;
         if (chestSize != null) {
-            inventory = Bukkit.createInventory(this, chestSize.inventorySize(), BukkitColor.apply(title));
+            inventory = Bukkit.createInventory(this, chestSize.inventorySize(), title);
         } else {
-            inventory = Bukkit.createInventory(this, type, BukkitColor.apply(title));
+            inventory = Bukkit.createInventory(this, type, title);
         }
         inventoryChanged.set(true);
         try {
@@ -221,7 +222,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             handler.onUpdate(this, false);
         }
         if (updateTitleOnOpen) {
-            GuiInventoryReflection.updateTitle(entity, inv, title);
+            GuiInventoryReflection.updateTitle(entity, inv, ComponentBuilder.parse(this.title).asLegacyText());
         }
     }
 

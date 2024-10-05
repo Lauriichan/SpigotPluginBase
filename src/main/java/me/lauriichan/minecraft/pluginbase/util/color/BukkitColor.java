@@ -10,9 +10,9 @@ public final class BukkitColor {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static final char COLOR_CHAR = '\u00A7';
+    public static final char COLOR_CHAR = ChatColor.COLOR_CHAR;
     public static final char HEX_CHAR = '\u0023';
-    public static final char REPLACEMENT_CHAR = '\u0026';
+    public static final char REPLACEMENT_CHAR = '&';
     public static final String ALL_CODES = "0123456789AabCcDdEeFfKkLlMmNnOoRrXx";
     public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + String.valueOf(COLOR_CHAR) + "[0-9A-FK-ORX]");
     public static final Pattern STRIP_UNCOLORED_PATTERN = Pattern
