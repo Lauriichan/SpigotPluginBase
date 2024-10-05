@@ -12,6 +12,8 @@ public abstract class Phase<G extends Game<G>> implements IExtension {
     
     protected void onEnd(GameState<G> state) {}
     
+    protected void onPhaseChange(GameState<G> state) {}
+    
     protected abstract boolean nextPhase();
 
 }

@@ -77,6 +77,7 @@ public final class GameManager {
                 list = new ObjectArrayList<>();
                 listenerMap.put(listener.gameType(), list);
             }
+            list.add(listener);
         });
         Object2ObjectOpenHashMap<Class<? extends Game<?>>, GameProvider<?>> type2Game = new Object2ObjectOpenHashMap<>();
         Object2ObjectOpenHashMap<String, GameProvider<?>> id2Game = new Object2ObjectOpenHashMap<>();

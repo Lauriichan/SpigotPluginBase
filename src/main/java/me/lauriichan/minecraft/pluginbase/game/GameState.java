@@ -135,6 +135,7 @@ public final class GameState<G extends Game<G>> {
                 timer.pause();
                 try {
                     current.onEnd(this);
+                    current.onPhaseChange(this);
                     if (++phaseIdx == phases.size()) {
                         if (!game.shouldRestart(this)) {
                             terminate();
@@ -172,7 +173,9 @@ public final class GameState<G extends Game<G>> {
         }
         timer.pause();
         try {
-            phases.get(phaseIdx).onEnd(this);
+            Phase<G> phase = phases.get(phaseIdx);
+            phase.onEnd(this);
+            phase.onPhaseChange(this);
             phaseIdx = index;
             activatePhase(phases.get(index));
         } finally {

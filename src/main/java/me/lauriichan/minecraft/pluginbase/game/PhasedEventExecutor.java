@@ -47,16 +47,19 @@ final class PhasedEventExecutor implements EventExecutor {
 
     @Override
     public void execute(Listener listener, Event event) throws EventException {
+        PhasedEventListener eventListener = (PhasedEventListener) listener;
         try {
             if (!eventType.isAssignableFrom(event.getClass())) {
                 return;
             }
-            PhasedEventListener eventListener = (PhasedEventListener) listener;
             call.execute(eventListener.listener(), eventListener.state(), method.get(), event);
         } catch (InvocationTargetException ex) {
-            throw new EventException(ex.getCause());
+            eventListener.state().logger().error(
+                "Failed to execute event '" + eventListener.listener().getClass().getName() + "#" + method.get().getName() + "'",
+                ex.getCause());
         } catch (Throwable t) {
-            throw new EventException(t);
+            eventListener.state().logger()
+                .error("Failed to execute event '" + eventListener.listener().getClass().getName() + "#" + method.get().getName() + "'", t);
         }
     }
 
@@ -73,5 +76,9 @@ final class PhasedEventExecutor implements EventExecutor {
 
     boolean shouldBeActive(Class<? extends Phase<?>> phase) {
         return method.shouldBeActive(phase);
+    }
+    
+    public String methodName() {
+        return method.get().getName();
     }
 }
