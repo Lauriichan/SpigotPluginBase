@@ -11,12 +11,15 @@ import it.unimi.dsi.fastutil.objects.ObjectLists;
 
 final class PhasedEventListener implements Listener {
 
+    private final String listenerName;
+    
     private final PhasedListener listener;
     private final GameState<?> state;
     
     private final ObjectList<Map.Entry<RegisteredListener, PhasedEventExecutor>> activeExecutors;
     
     PhasedEventListener(PhasedListener listener, GameState<?> state) {
+        this.listenerName = listener.getClass().getSimpleName();
         this.listener = listener;
         this.state = state;
         this.activeExecutors = ObjectLists.synchronize(new ObjectArrayList<>(listener.executors().size()));
@@ -44,6 +47,7 @@ final class PhasedEventListener implements Listener {
             for (int i = 0; i < activeExecutors.size(); i++) {
                 Map.Entry<RegisteredListener, PhasedEventExecutor> entry = activeExecutors.get(i);
                 if (!entry.getValue().shouldBeActive(newPhase)) {
+                    state.logger().debug("Deactivating {0}#{1}", listenerName, entry.getValue().methodName());
                     entry.getValue().unregister(entry.getKey());
                     activeExecutors.remove(i--);
                     continue;
@@ -57,6 +61,7 @@ final class PhasedEventListener implements Listener {
             if (stillActive.contains(executor) || !executor.shouldBeActive(newPhase)) {
                 return;
             }
+            state.logger().debug("Activating {0}#{1}", listenerName, executor.methodName());
             activeExecutors.add(Map.entry(executor.register(this), executor));
         });
     }

@@ -123,40 +123,44 @@ public final class GameState<G extends Game<G>> {
     }
 
     public final <T extends Task<G>> T task(Class<T> taskType) {
-        return phases.stream().filter(phase -> taskType.isAssignableFrom(phase.getClass())).findFirst().map(taskType::cast).orElse(null);
+        return tasks.stream().filter(task -> taskType.isAssignableFrom(task.get().getClass())).findFirst().map(task -> taskType.cast(task.get())).orElse(null);
     }
 
     private void tick(long delta) {
-        game.onTick(this, delta);
-        if (phaseIdx != -1) {
-            Phase<G> current = phases.get(phaseIdx);
-            current.onTick(this, delta);
-            if (current.nextPhase()) {
-                timer.pause();
-                try {
-                    current.onEnd(this);
-                    current.onPhaseChange(this);
-                    if (++phaseIdx == phases.size()) {
-                        if (!game.shouldRestart(this)) {
-                            terminate();
-                            return;
+        try {
+            game.onTick(this, delta);
+            if (phaseIdx != -1) {
+                Phase<G> current = phases.get(phaseIdx);
+                current.onTick(this, delta);
+                if (current.nextPhase()) {
+                    timer.pause();
+                    try {
+                        current.onEnd(this);
+                        current.onPhaseChange(this);
+                        if (++phaseIdx == phases.size()) {
+                            if (!game.shouldRestart(this)) {
+                                terminate();
+                                return;
+                            }
+                            game.onStop(this);
+                            phaseIdx = 0;
+                            game.onStart(this, timer);
                         }
-                        game.onStop(this);
-                        phaseIdx = 0;
-                        game.onStart(this, timer);
+                        activatePhase(phases.get(phaseIdx));
+                    } finally {
+                        timer.start();
                     }
-                    activatePhase(phases.get(phaseIdx));
-                } finally {
-                    timer.start();
                 }
+                game.onTickPostPhase(this, delta);
             }
-            game.onTickPostPhase(this, delta);
-        }
-        if (!activeTasks.isEmpty()) {
-            for (Task<G> task : activeTasks) {
-                task.onTick(this, delta);
+            if (!activeTasks.isEmpty()) {
+                for (Task<G> task : activeTasks) {
+                    task.onTick(this, delta);
+                }
+                game.onTickPostTask(this, delta);
             }
-            game.onTickPostTask(this, delta);
+        } catch(Throwable exp) {
+            logger.error("Failed to tick game '" + game.getClass().getSimpleName() + "'", exp);
         }
     }
     

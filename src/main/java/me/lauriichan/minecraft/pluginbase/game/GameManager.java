@@ -1,6 +1,5 @@
 package me.lauriichan.minecraft.pluginbase.game;
 
-import java.lang.reflect.Type;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
