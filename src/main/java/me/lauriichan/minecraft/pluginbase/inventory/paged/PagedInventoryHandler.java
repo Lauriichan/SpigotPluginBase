@@ -9,6 +9,8 @@ import org.bukkit.inventory.ItemStack;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.inventory.ClickType;
+import me.lauriichan.minecraft.pluginbase.inventory.DropType;
 import me.lauriichan.minecraft.pluginbase.inventory.IGuiInventory;
 
 public abstract class PagedInventoryHandler<H extends IInventoryPageExtension<H, P>, P> implements IPagedInventoryHandlerExtension {
@@ -101,22 +103,22 @@ public abstract class PagedInventoryHandler<H extends IInventoryPageExtension<H,
     }
 
     protected boolean onUnhandledClickPickup(final P player, final IGuiInventory inventory, final ItemStack item, final int slot,
-        final int amount, final boolean cursor) {
+        final int amount, final boolean cursor, final ClickType type) {
         return true;
     }
 
     protected boolean onUnhandledClickPlace(final P player, final IGuiInventory inventory, final ItemStack item, final int slot,
-        final int amount) {
+        final int amount, final ClickType type) {
         return true;
     }
 
     protected boolean onUnhandledClickSwap(final P player, final IGuiInventory inventory, final ItemStack previous, final ItemStack now,
-        final int slot) {
+        final int slot, final ClickType type) {
         return true;
     }
 
     protected boolean onUnhandledClickDrop(final P player, final IGuiInventory inventory, final ItemStack item, final int slot,
-        final int amount) {
+        final int amount, final DropType type) {
         return true;
     }
 
@@ -287,13 +289,13 @@ public abstract class PagedInventoryHandler<H extends IInventoryPageExtension<H,
 
     @Override
     public boolean onClickDrop(final HumanEntity entity, final IGuiInventory inventory, final ItemStack item, final int slot,
-        final int amount) {
+        final int amount, final DropType type) {
         final P player = playerFromEntity(entity);
         final H page = currentPageFor(player, inventory);
         if (page == null) {
-            return onUnhandledClickDrop(player, inventory, item, slot, amount);
+            return onUnhandledClickDrop(player, inventory, item, slot, amount, type);
         }
-        return page.onClickDrop(context(player, inventory), item, slot, amount);
+        return page.onClickDrop(context(player, inventory), item, slot, amount, type);
     }
 
     @Override
@@ -309,35 +311,35 @@ public abstract class PagedInventoryHandler<H extends IInventoryPageExtension<H,
 
     @Override
     public boolean onClickPickup(final HumanEntity entity, final IGuiInventory inventory, final ItemStack item, final int slot,
-        final int amount, final boolean cursor) {
+        final int amount, final boolean cursor, final ClickType type) {
         final P player = playerFromEntity(entity);
         final H page = currentPageFor(player, inventory);
         if (page == null) {
-            return onUnhandledClickPickup(player, inventory, item, slot, amount, cursor);
+            return onUnhandledClickPickup(player, inventory, item, slot, amount, cursor, type);
         }
-        return page.onClickPickup(context(player, inventory), item, slot, amount, cursor);
+        return page.onClickPickup(context(player, inventory), item, slot, amount, cursor, type);
     }
 
     @Override
     public boolean onClickPlace(final HumanEntity entity, final IGuiInventory inventory, final ItemStack item, final int slot,
-        final int amount) {
+        final int amount, final ClickType type) {
         final P player = playerFromEntity(entity);
         final H page = currentPageFor(player, inventory);
         if (page == null) {
-            return onUnhandledClickPlace(player, inventory, item, slot, amount);
+            return onUnhandledClickPlace(player, inventory, item, slot, amount, type);
         }
-        return page.onClickPlace(context(player, inventory), item, slot, amount);
+        return page.onClickPlace(context(player, inventory), item, slot, amount, type);
     }
 
     @Override
     public boolean onClickSwap(final HumanEntity entity, final IGuiInventory inventory, final ItemStack previous, final ItemStack now,
-        final int slot) {
+        final int slot, final ClickType type) {
         final P player = playerFromEntity(entity);
         final H page = currentPageFor(player, inventory);
         if (page == null) {
-            return onUnhandledClickSwap(player, inventory, previous, now, slot);
+            return onUnhandledClickSwap(player, inventory, previous, now, slot, type);
         }
-        return page.onClickSwap(context(player, inventory), previous, now, slot);
+        return page.onClickSwap(context(player, inventory), previous, now, slot, type);
     }
 
 }

@@ -7,6 +7,8 @@ import org.bukkit.inventory.ItemStack;
 
 import me.lauriichan.minecraft.pluginbase.extension.ExtensionPoint;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
+import me.lauriichan.minecraft.pluginbase.inventory.ClickType;
+import me.lauriichan.minecraft.pluginbase.inventory.DropType;
 
 @ExtensionPoint
 public interface IInventoryPageExtension<H extends IInventoryPageExtension<H, P>, P> extends IExtension {
@@ -41,19 +43,22 @@ public interface IInventoryPageExtension<H extends IInventoryPageExtension<H, P>
     }
 
     default boolean onClickPickup(final PageContext<H, P> context, final ItemStack item, final int slot, final int amount,
-        final boolean cursor) {
+        final boolean cursor, final ClickType type) {
         return true;
     }
 
-    default boolean onClickPlace(final PageContext<H, P> context, final ItemStack item, final int slot, final int amount) {
+    default boolean onClickPlace(final PageContext<H, P> context, final ItemStack item, final int slot, final int amount,
+        final ClickType type) {
         return true;
     }
 
-    default boolean onClickSwap(final PageContext<H, P> context, final ItemStack previous, final ItemStack now, final int slot) {
+    default boolean onClickSwap(final PageContext<H, P> context, final ItemStack previous, final ItemStack now, final int slot,
+        final ClickType type) {
         return true;
     }
 
-    default boolean onClickDrop(final PageContext<H, P> context, final ItemStack item, final int slot, final int amount) {
+    default boolean onClickDrop(final PageContext<H, P> context, final ItemStack item, final int slot, final int amount,
+        final DropType type) {
         return true;
     }
 
