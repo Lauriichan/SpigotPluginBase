@@ -3,6 +3,7 @@ package me.lauriichan.minecraft.pluginbase.util.attribute;
 import java.util.Set;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import me.lauriichan.laylib.reflection.ClassUtil;
 
 public abstract class Attributable implements IAttributable {
 
@@ -21,16 +22,20 @@ public abstract class Attributable implements IAttributable {
     @Override
     public final <T> T attrOrDefault(final String key, final Class<T> type, final T fallback) {
         final Object obj = attributes.get(key);
-        if (obj == null || !type.isAssignableFrom(obj.getClass())) {
+        if (obj == null || !ClassUtil.toComplexType(type).isAssignableFrom(obj.getClass())) {
             return fallback;
+        }
+        if (ClassUtil.isPrimitiveType(type)) {
+            return (T) toPrimitive(obj, type);
         }
         return type.cast(obj);
     }
 
     @Override
     public Class<?> attrClass(final String key) {
-        if (attributes.get(key) instanceof final Class<?> clazz) {
-            return clazz;
+        Object object = attributes.get(key);
+        if (object instanceof Class) {
+            return (Class<?>) object;
         }
         return null;
     }
@@ -42,8 +47,12 @@ public abstract class Attributable implements IAttributable {
 
     @Override
     public <T> Class<? extends T> attrClassOrDefault(final String key, final Class<T> type, final Class<? extends T> fallback) {
-        if (attributes.get(key) instanceof final Class<?> clazz && type.isAssignableFrom(clazz)) {
-            return clazz.asSubclass(type);
+        Object object = attributes.get(key);
+        if (object instanceof Class) {
+            Class<?> clazz = (Class<?>) object;
+            if (type.isAssignableFrom(clazz)) {
+                return clazz.asSubclass(type);
+            }
         }
         return fallback;
     }
@@ -56,7 +65,7 @@ public abstract class Attributable implements IAttributable {
     @Override
     public final boolean attrHas(final String key, final Class<?> type) {
         final Object obj = attributes.get(key);
-        return obj != null && type.isAssignableFrom(obj.getClass());
+        return obj != null && ClassUtil.toComplexType(type).isAssignableFrom(obj.getClass());
     }
 
     @Override
@@ -81,8 +90,11 @@ public abstract class Attributable implements IAttributable {
     @Override
     public <T> T attrUnsetOrDefault(final String key, final Class<T> type, final T fallback) {
         final Object obj = attributes.remove(key);
-        if (obj == null || !type.isAssignableFrom(obj.getClass())) {
+        if (obj == null || !ClassUtil.toComplexType(type).isAssignableFrom(obj.getClass())) {
             return fallback;
+        }
+        if (ClassUtil.isPrimitiveType(type)) {
+            return (T) toPrimitive(obj, type);
         }
         return type.cast(obj);
     }
@@ -100,6 +112,31 @@ public abstract class Attributable implements IAttributable {
     @Override
     public final Set<String> attrKeys() {
         return attributes.keySet();
+    }
+    
+    private Object toPrimitive(Object object, Class<?> type) {
+        if (type == byte.class) {
+            return ((Byte) object).byteValue();
+        }
+        if (type == short.class) {
+            return ((Short) object).shortValue();
+        }
+        if (type == int.class) {
+            return ((Integer) object).intValue();
+        }
+        if (type == long.class) {
+            return ((Long) object).longValue();
+        }
+        if (type == float.class) {
+            return ((Float) object).floatValue();
+        }
+        if (type == double.class) {
+            return ((Double) object).doubleValue();
+        }
+        if (type == boolean.class) {
+            return ((Boolean) object).booleanValue();
+        }
+        return object;
     }
 
 }

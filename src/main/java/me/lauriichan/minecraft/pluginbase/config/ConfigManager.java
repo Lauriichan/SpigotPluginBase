@@ -1,11 +1,10 @@
 package me.lauriichan.minecraft.pluginbase.config;
 
-import com.google.common.collect.Streams;
+import java.util.stream.Stream;
 
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
@@ -33,30 +32,30 @@ public final class ConfigManager {
         return configs.size();
     }
 
-    public Object2IntMap<ConfigWrapper<?>> reload() {
+    public Object2ObjectMap<IConfigWrapper<?>, int[]> reload() {
         return reload(false);
     }
 
-    public Object2IntMap<ConfigWrapper<?>> reload(boolean force) {
-        ObjectList<ConfigWrapper<?>> wrappers = wrappers();
-        Object2IntArrayMap<ConfigWrapper<?>> results = new Object2IntArrayMap<>(wrappers.size());
-        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(force)));
-        return Object2IntMaps.unmodifiable(results);
+    public Object2ObjectMap<IConfigWrapper<?>, int[]> reload(boolean wipeAfterLoad) {
+        ObjectList<IConfigWrapper<?>> wrappers = wrappers();
+        Object2ObjectArrayMap<IConfigWrapper<?>, int[]> results = new Object2ObjectArrayMap<>(wrappers.size());
+        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(wipeAfterLoad)));
+        return Object2ObjectMaps.unmodifiable(results);
     }
 
-    public Object2IntMap<ConfigWrapper<?>> save() {
+    public Object2ObjectMap<IConfigWrapper<?>, int[]> save() {
         return save(false);
     }
 
-    public Object2IntMap<ConfigWrapper<?>> save(boolean force) {
-        ObjectList<ConfigWrapper<?>> wrappers = wrappers();
-        Object2IntArrayMap<ConfigWrapper<?>> results = new Object2IntArrayMap<>(wrappers.size());
+    public Object2ObjectMap<IConfigWrapper<?>, int[]> save(boolean force) {
+        ObjectList<IConfigWrapper<?>> wrappers = wrappers();
+        Object2ObjectArrayMap<IConfigWrapper<?>, int[]> results = new Object2ObjectArrayMap<>(wrappers.size());
         wrappers.forEach(wrapper -> results.put(wrapper, wrapper.save(force)));
-        return Object2IntMaps.unmodifiable(results);
+        return Object2ObjectMaps.unmodifiable(results);
     }
 
-    public ObjectList<ConfigWrapper<?>> wrappers() {
-        return Streams.concat(configs.values().stream(), multiConfigs.values().stream().flatMap(config -> config.wrappers().stream()))
+    public ObjectList<IConfigWrapper<?>> wrappers() {
+        return Stream.concat(configs.values().stream(), multiConfigs.values().stream().flatMap(config -> config.wrappers().stream()))
             .collect(SimpleCollectors.toList());
     }
 

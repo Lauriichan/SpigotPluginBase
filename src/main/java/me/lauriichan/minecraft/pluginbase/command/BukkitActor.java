@@ -13,6 +13,7 @@ import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
+import me.lauriichan.minecraft.pluginbase.message.component.SubComponentBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class BukkitActor<P extends CommandSender> extends Actor<P> {
@@ -58,14 +59,11 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
 
     @Override
     public void sendMessage(final String message) {
-        if (logger.isDebug()) {
-            logger.debug("Message to {0}: '{1}'", handle.getName(), message);
-        }
-        ComponentBuilder.create().appendContent(message).finish().send(handle);
+        ComponentBuilder.parse(message).send(handle);
     }
 
     public void sendBarMessage(final String message) {
-        ComponentBuilder.create().appendContent(message).finish().send(this, ChatMessageType.ACTION_BAR);
+        ComponentBuilder.parse(message).send(this, ChatMessageType.ACTION_BAR);
     }
 
     public void sendBarMessage(IMessage message, Key... placeholders) {
@@ -78,6 +76,18 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
 
     public void sendTranslatedBarMessage(String messageId, Key... placeholders) {
         sendBarMessage(messageManager.translate(messageId, getLanguage(), placeholders));
+    }
+
+    public SubComponentBuilder<?> componentBuilder(IMessage message, Key... placeholders) {
+        return ComponentBuilder.create().appendContent(messageManager.format(message, placeholders));
+    }
+
+    public SubComponentBuilder<?> componentBuilder(MessageProvider provider, Key... placeholders) {
+        return ComponentBuilder.create().appendContent(messageManager.translate(provider, getLanguage(), placeholders));
+    }
+
+    public SubComponentBuilder<?> componentBuilder(String messageId, Key... placeholders) {
+        return ComponentBuilder.create().appendContent(messageManager.translate(messageId, getLanguage(), placeholders));
     }
 
     @Override

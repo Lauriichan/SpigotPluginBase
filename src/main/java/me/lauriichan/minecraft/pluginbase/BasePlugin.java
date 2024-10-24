@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,10 +30,16 @@ import me.lauriichan.minecraft.pluginbase.config.ConfigWrapper;
 import me.lauriichan.minecraft.pluginbase.config.startup.IPropertyIO;
 import me.lauriichan.minecraft.pluginbase.config.startup.Property;
 import me.lauriichan.minecraft.pluginbase.config.startup.StartupConfig;
+import me.lauriichan.minecraft.pluginbase.data.DataManager;
+import me.lauriichan.minecraft.pluginbase.data.DataMigrator;
 import me.lauriichan.minecraft.pluginbase.extension.IConditionMap;
 import me.lauriichan.minecraft.pluginbase.extension.IExtension;
 import me.lauriichan.minecraft.pluginbase.extension.IExtensionPool;
+import me.lauriichan.minecraft.pluginbase.game.GameManager;
+import me.lauriichan.minecraft.pluginbase.game.GameProvider;
+import me.lauriichan.minecraft.pluginbase.game.GameState;
 import me.lauriichan.minecraft.pluginbase.inventory.paged.PagedInventoryRegistry;
+import me.lauriichan.minecraft.pluginbase.io.IOManager;
 import me.lauriichan.minecraft.pluginbase.listener.IListenerExtension;
 import me.lauriichan.minecraft.pluginbase.message.IMessageExtension;
 import me.lauriichan.minecraft.pluginbase.message.provider.SimpleMessageProviderFactory;
@@ -46,7 +53,11 @@ import me.lauriichan.minecraft.pluginbase.util.instance.SharedInstances;
 import me.lauriichan.minecraft.pluginbase.util.instance.SimpleInstanceInvoker;
 import me.lauriichan.minecraft.pluginbase.util.reflection.SpigotReflection;
 
-public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
+public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin implements IBasePluginAccess {
+    
+    public static BasePlugin<?> getBasePlugin() {
+        return ((IBasePluginAccess) BasePlugin.getProvidingPlugin(BasePlugin.class)).base();
+    }
 
     public static enum PluginPhase {
 
@@ -79,6 +90,22 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         public boolean isPlugin() {
             return isPlugin;
         }
+        
+        public boolean isLoad() {
+            return this == LOAD_CORE || this == LOAD_PLUGIN || this == POST_LOAD_CORE;
+        }
+        
+        public boolean isEnable() {
+            return this == ENABLE_CORE || this == ENABLE_PLUGIN || this == POST_ENABLE_CORE;
+        }
+        
+        public boolean isReady() {
+            return this == READY_CORE || this == READY_PLUGIN;
+        }
+        
+        public boolean isDisable() {
+            return this == DISABLE_CORE || this == DISABLE_PLUGIN;
+        }
 
     }
 
@@ -98,9 +125,16 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     private volatile ConditionMapImpl conditionMap;
 
+    private volatile IOManager ioManager;
+
     private volatile ConfigMigrator configMigrator;
     private volatile ConfigManager configManager;
     private volatile ConfigWrapper<StartupConfig> startupConfig;
+    
+    private volatile DataMigrator dataMigrator;
+    private volatile DataManager dataManager;
+
+    private volatile GameManager gameManager;
 
     private volatile PagedInventoryRegistry pagedInventoryRegistry;
 
@@ -330,7 +364,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         setupConditionMap();
         registerMessages();
         setupArgumentRegistry();
+        setupIO();
         setupConfigs();
+        setupData();
+        setupGameManager();
     }
 
     private final void onCorePostEnable() throws Throwable {
@@ -348,11 +385,25 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         argumentRegistry.registerArgumentType(UUIDArgument.class);
         onArgumentSetup(argumentRegistry);
     }
+    
+    protected void setupIO() {
+        ioManager = new IOManager(this);
+    }
 
     private final void setupConfigs() {
         configMigrator = new ConfigMigrator(this);
         configManager = new ConfigManager(this);
         configManager.reload();
+    }
+    
+    protected void setupData() {
+        dataMigrator = new DataMigrator(this);
+        dataManager = new DataManager(this);
+        dataManager.reload();
+    }
+    
+    private final void setupGameManager() {
+        gameManager = new GameManager(this);
     }
 
     private final void registerListeners() {
@@ -382,7 +433,17 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
 
     private final void onCoreDisable() throws Throwable {
         HandlerList.unregisterAll();
+        disableGames();
         clearFields();
+    }
+    
+    private final void disableGames() {
+        for (GameProvider<?> provider : gameManager.getGames()) {
+            GameState<?>[] states = provider.states().toArray(GameState[]::new);
+            for (GameState<?> state : states) {
+                state.terminate();
+            }
+        }
     }
 
     private final void clearFields() {
@@ -419,6 +480,15 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
     /*
      * Getter
      */
+    
+    @Override
+    public BasePlugin<?> base() {
+        return this;
+    }
+    
+    public Plugin bukkitPlugin() {
+        return this;
+    }
 
     public final Path jarRoot() {
         return jarRoot;
@@ -456,12 +526,28 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin {
         return conditionMap;
     }
 
+    public final IOManager ioManager() {
+        return ioManager;
+    }
+
     public final ConfigMigrator configMigrator() {
         return configMigrator;
     }
 
     public final ConfigManager configManager() {
         return configManager;
+    }
+
+    public final DataMigrator dataMigrator() {
+        return dataMigrator;
+    }
+
+    public final DataManager dataManager() {
+        return dataManager;
+    }
+    
+    public final GameManager gameManager() {
+        return gameManager;
     }
 
     public final PagedInventoryRegistry pagedInventoryRegistry() {

@@ -30,16 +30,5 @@ public abstract class ConfigMigrationExtension<C extends IConfigExtension> imple
     public abstract String description();
     
     public abstract void migrate(Configuration configuration) throws Throwable;
-    
-    /*
-     * Utils
-     */
-    
-    public final void copy(Configuration config, String pathA, String pathB) {
-        if (!config.contains(pathA)) {
-            return;
-        }
-        config.set(pathB, config.get(pathA));
-    }
 
 }

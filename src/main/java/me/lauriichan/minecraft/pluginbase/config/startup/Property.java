@@ -35,6 +35,9 @@ public final class Property<T> {
     final void load(Configuration configuration) {
         Configuration section = configuration.getConfiguration(path, false);
         if (section == null) {
+            if (onLoad != null) {
+                onLoad.accept(defaultValue);
+            }
             return;
         }
         T value = io.read(section, "value");

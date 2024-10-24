@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
+import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.ISingleConfigExtension;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
@@ -31,14 +32,14 @@ public final class StartupConfig implements ISingleConfigExtension {
     }
     
     @Override
-    public void onLoad(Configuration configuration) throws Exception {
+    public void onLoad(ISimpleLogger logger, Configuration configuration) throws Exception {
         for (Property<?> property : properties) {
             property.load(configuration);
         }
     }
     
     @Override
-    public void onSave(Configuration configuration) throws Exception {
+    public void onSave(ISimpleLogger logger, Configuration configuration) throws Exception {
         for (Property<?> property : properties) {
             property.save(configuration);
         }

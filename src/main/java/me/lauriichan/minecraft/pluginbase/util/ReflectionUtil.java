@@ -1,5 +1,7 @@
 package me.lauriichan.minecraft.pluginbase.util;
 
+import java.lang.reflect.Type;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 
@@ -11,6 +13,18 @@ public final class ReflectionUtil {
 
     private ReflectionUtil() {
         throw new UnsupportedOperationException();
+    }
+
+    public static Class<?> getGenericOf(final Class<?> clazz, final Class<?> superClazz, int index) {
+        Type type = clazz.getGenericSuperclass();
+        while (!(type instanceof ParameterizedType) || ((ParameterizedType) type).getRawType() != superClazz) {
+            if (type instanceof ParameterizedType) {
+                type = ((Class<?>) ((ParameterizedType) type).getRawType()).getGenericSuperclass();
+            } else {
+                type = ((Class<?>) type).getGenericSuperclass();
+            }
+        }
+        return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[index];
     }
 
     @SuppressWarnings("rawtypes")
@@ -116,7 +130,7 @@ public final class ReflectionUtil {
         }
         try {
             return type.cast(JavaAccess.PLATFORM.invoke(matching, argumentArray));
-        } catch(AccessFailedException e) {
+        } catch (AccessFailedException e) {
             throw e.getCause();
         }
     }

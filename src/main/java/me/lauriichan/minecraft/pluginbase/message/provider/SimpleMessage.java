@@ -2,7 +2,7 @@ package me.lauriichan.minecraft.pluginbase.message.provider;
 
 import me.lauriichan.laylib.localization.IMessage;
 
-public final class SimpleMessage implements IMessage {
+public final class SimpleMessage implements IMessage, ISimpleMessage {
 
     private final SimpleMessageProvider provider;
     private final String language;
@@ -14,7 +14,8 @@ public final class SimpleMessage implements IMessage {
         this.language = language;
     }
 
-    public void translation(final String translation) {
+    @Override
+    public void setTranslation(final String translation) {
         if (translation == null || translation.isBlank()) {
             this.translation = null;
             return;
@@ -38,6 +39,11 @@ public final class SimpleMessage implements IMessage {
             return provider.getFallback();
         }
         return translation;
+    }
+
+    @Override
+    public String fallback() {
+        return provider.getFallback();
     }
 
 }
