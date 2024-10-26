@@ -143,6 +143,17 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         return new TextComponent(buildComponentArray());
     }
     
+    public String asPlainText() {
+        if (builders.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < builders.size(); i++) {
+            builder.append(builders.get(i).asPlainText());
+        }
+        return builder.toString();
+    }
+    
     public String asLegacyText() {
         return BaseComponent.toLegacyText(buildComponentArray());
     }

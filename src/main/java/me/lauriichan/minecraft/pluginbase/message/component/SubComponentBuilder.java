@@ -14,7 +14,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Entity;
 
 public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends ComponentBuilder<P, SubComponentBuilder<P>> {
-    
+
     public static SubComponentBuilder<?> parse(String richString) {
         return ComponentBuilder.create().appendContent(richString);
     }
@@ -132,7 +132,7 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         component.setClickEvent(event);
         return this;
     }
-    
+
     public ClickEvent click() {
         return component.getClickEvent();
     }
@@ -189,7 +189,7 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         component.setHoverEvent(event);
         return this;
     }
-    
+
     public HoverEvent hover() {
         return component.getHoverEvent();
     }
@@ -205,7 +205,7 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
         this.component.copyFormatting(component.component);
         return this;
     }
-    
+
     public SubComponentBuilder<P> loadFrom(SubComponentBuilder<?> component) {
         this.component.setText(component.component.getText());
         this.component.copyFormatting(component.component);
@@ -224,6 +224,18 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
             output.setExtra(buildComponentList());
         }
         return output;
+    }
+
+    @Override
+    public String asPlainText() {
+        if (builders.isEmpty()) {
+            return component.getText();
+        }
+        StringBuilder builder = new StringBuilder(component.getText());
+        for (int i = 0; i < builders.size(); i++) {
+            builder.append(builders.get(i).asPlainText());
+        }
+        return builder.toString();
     }
 
     public P finish() {
