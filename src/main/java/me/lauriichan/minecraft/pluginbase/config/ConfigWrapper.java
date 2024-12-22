@@ -85,16 +85,16 @@ public final class ConfigWrapper<T extends IConfigExtension> implements IConfigW
     }
 
     @Override
-    public int[] reload(boolean wipeAfterLoad) {
+    public int[] reload(final boolean forceReload, final boolean wipeAfterLoad) {
         return new int[] {
-            reloadSingle(wipeAfterLoad)
+            reloadSingle(forceReload, wipeAfterLoad)
         };
     }
 
-    public int reloadSingle(final boolean wipeAfterLoad) {
+    public int reloadSingle(final boolean forceReload, final boolean wipeAfterLoad) {
         final Configuration configuration = new Configuration();
         if (source.exists()) {
-            if (lastTimeModified == source.lastModified() && !config.isModified()) {
+            if (!forceReload && lastTimeModified == source.lastModified() && !config.isModified()) {
                 return SKIPPED;
             }
             configuration.clear();

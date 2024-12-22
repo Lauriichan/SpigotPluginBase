@@ -92,10 +92,10 @@ public class BukkitCommand extends Command implements PluginIdentifiableCommand 
         List<String> suggestions = null;
         try {
             if (completer != null) {
-                suggestions = complete(sender, completer, args, location);
+                suggestions = complete(sender, completer, alias, args, location);
             }
             if (suggestions == null && executor instanceof TabCompleter completer) {
-                suggestions = complete(sender, completer, args, location);
+                suggestions = complete(sender, completer, alias, args, location);
             }
         } catch (Throwable ex) {
             StringBuilder message = new StringBuilder();
@@ -112,11 +112,11 @@ public class BukkitCommand extends Command implements PluginIdentifiableCommand 
         return suggestions;
     }
 
-    private List<String> complete(CommandSender sender, TabCompleter completer, String[] args, Location location) {
+    private List<String> complete(CommandSender sender, TabCompleter completer, String alias, String[] args, Location location) {
         if (completer instanceof BukkitCommandBridge<?> bridge) {
-            return bridge.onTabComplete(sender, this, description, args, location);
+            return bridge.onTabComplete(sender, this, alias, args, location);
         }
-        return completer.onTabComplete(sender, this, description, args);
+        return completer.onTabComplete(sender, this, alias, args);
     }
 
 }

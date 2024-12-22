@@ -334,7 +334,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
             onCoreProperties(list);
             onPluginProperties(list);
         }));
-        startupConfig.reload(true);
+        startupConfig.reload(true, true);
     }
 
     private final void onCoreProperties(ObjectArrayList<Property<?>> properties) {

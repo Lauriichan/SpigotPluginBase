@@ -178,6 +178,9 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
                 for (HumanEntity entity : entities) {
                     GuiInventoryReflection.updateTitle(entity, inventory, title);
                 }
+                if (handler != null) {
+                    handler.onUpdate(this, true);
+                }
                 return;
             }
         }

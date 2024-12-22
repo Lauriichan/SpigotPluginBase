@@ -51,7 +51,7 @@ public final class MultiMessageConfig implements IMultiConfigExtension<String, S
                 continue;
             }
             String langName = file.getName().substring(0, file.getName().length() - 5);
-            plugin.configManager().multiWrapperOrCreate(getClass(), langName).reload(false);
+            plugin.configManager().multiWrapperOrCreate(getClass(), langName).reload();
         }
     }
 

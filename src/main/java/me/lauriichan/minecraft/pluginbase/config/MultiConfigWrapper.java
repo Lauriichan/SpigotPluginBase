@@ -32,7 +32,7 @@ public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extend
         ConfigWrapper<C> wrapper = configs.get(key);
         if (wrapper == null) {
             wrapper = new ConfigWrapper<>(plugin, extension.create(), extension.path(element));
-            wrapper.reload(false);
+            wrapper.reload(false, false);
             configs.put(key, wrapper);
         }
         return wrapper;
@@ -60,7 +60,7 @@ public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extend
     }
 
     @Override
-    public int[] reload(boolean wipeAfterLoad) {
+    public int[] reload(final boolean forceReload, final boolean wipeAfterLoad) {
         try {
             extension.onLoad(plugin.logger());
         } catch (RuntimeException exp) {
@@ -69,13 +69,13 @@ public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extend
         int index = 0;
         int[] states = new int[configs.size()];
         for (ConfigWrapper<C> wrapper : configs.values()) {
-            states[index++] = wrapper.reloadSingle(wipeAfterLoad);
+            states[index++] = wrapper.reloadSingle(forceReload, wipeAfterLoad);
         }
         return states;
     }
 
     @Override
-    public int[] save(boolean forceSave) {
+    public int[] save(final boolean forceSave) {
         try {
             extension.onSave(plugin.logger());
         } catch (RuntimeException exp) {

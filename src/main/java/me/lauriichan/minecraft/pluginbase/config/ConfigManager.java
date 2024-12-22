@@ -33,13 +33,13 @@ public final class ConfigManager {
     }
 
     public Object2ObjectMap<IConfigWrapper<?>, int[]> reload() {
-        return reload(false);
+        return reload(false, false);
     }
 
-    public Object2ObjectMap<IConfigWrapper<?>, int[]> reload(boolean wipeAfterLoad) {
+    public Object2ObjectMap<IConfigWrapper<?>, int[]> reload(boolean force, boolean wipeAfterLoad) {
         ObjectList<IConfigWrapper<?>> wrappers = wrappers();
         Object2ObjectArrayMap<IConfigWrapper<?>, int[]> results = new Object2ObjectArrayMap<>(wrappers.size());
-        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(wipeAfterLoad)));
+        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(force, wipeAfterLoad)));
         return Object2ObjectMaps.unmodifiable(results);
     }
 
