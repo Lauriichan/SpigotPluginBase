@@ -27,7 +27,7 @@ public final class MultiDataWrapper<K, E, T, D extends IFileDataExtension<T>, M 
         DataWrapper<T, D> wrapper = data.get(key);
         if (wrapper == null) {
             wrapper = new DataWrapper<>(plugin, extension.create(), extension.path(element));
-            wrapper.reload(false);
+            wrapper.reload();
             data.put(key, wrapper);
         }
         return wrapper;

@@ -2,10 +2,9 @@ package me.lauriichan.minecraft.pluginbase.data;
 
 import java.util.stream.Stream;
 
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
@@ -38,26 +37,26 @@ public final class DataManager {
         return data.size();
     }
 
-    public Object2IntMap<IDataWrapper<?, ?>> reload() {
-        return reload(false);
+    public Object2ObjectMap<IDataWrapper<?, ?>, int[]> reload() {
+        return reload(false, false);
     }
 
-    public Object2IntMap<IDataWrapper<?, ?>> reload(boolean wipeAfterLoad) {
+    public Object2ObjectMap<IDataWrapper<?, ?>, int[]> reload(boolean force, boolean wipeAfterLoad) {
         ObjectList<IDataWrapper<?, ?>> wrappers = wrappers();
-        Object2IntArrayMap<IDataWrapper<?, ?>> results = new Object2IntArrayMap<>(wrappers.size());
-        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(wipeAfterLoad)));
-        return Object2IntMaps.unmodifiable(results);
+        Object2ObjectArrayMap<IDataWrapper<?, ?>, int[]> results = new Object2ObjectArrayMap<>(wrappers.size());
+        wrappers.forEach(wrapper -> results.put(wrapper, wrapper.reload(force, wipeAfterLoad)));
+        return Object2ObjectMaps.unmodifiable(results);
     }
 
-    public Object2IntMap<IDataWrapper<?, ?>> save() {
+    public Object2ObjectMap<IDataWrapper<?, ?>, int[]> save() {
         return save(false);
     }
 
-    public Object2IntMap<IDataWrapper<?, ?>> save(boolean force) {
+    public Object2ObjectMap<IDataWrapper<?, ?>, int[]> save(boolean force) {
         ObjectList<IDataWrapper<?, ?>> wrappers = wrappers();
-        Object2IntArrayMap<IDataWrapper<?, ?>> results = new Object2IntArrayMap<>(wrappers.size());
+        Object2ObjectArrayMap<IDataWrapper<?, ?>, int[]> results = new Object2ObjectArrayMap<>(wrappers.size());
         wrappers.forEach(wrapper -> results.put(wrapper, wrapper.save(force)));
-        return Object2IntMaps.unmodifiable(results);
+        return Object2ObjectMaps.unmodifiable(results);
     }
 
     public ObjectList<IDataWrapper<?, ?>> wrappers() {

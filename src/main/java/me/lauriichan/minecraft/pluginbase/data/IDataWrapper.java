@@ -37,8 +37,16 @@ public interface IDataWrapper<T, D extends IDataExtension<T>> {
     
     IDataHandler<T> handler();
     
-    int reload(boolean wipeAfterLoad);
+    default int[] reload() {
+        return reload(false, false);
+    }
     
-    int save(boolean force);
+    int[] reload(boolean force, boolean wipeAfterLoad);
+    
+    default int[] save() {
+        return save(false);
+    }
+    
+    int[] save(boolean force);
 
 }

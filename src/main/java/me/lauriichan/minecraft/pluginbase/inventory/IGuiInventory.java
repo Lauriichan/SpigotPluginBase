@@ -1,8 +1,5 @@
 package me.lauriichan.minecraft.pluginbase.inventory;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.entity.HumanEntity;
@@ -10,6 +7,9 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import me.lauriichan.minecraft.pluginbase.inventory.item.ItemEditor;
 import me.lauriichan.minecraft.pluginbase.util.attribute.IAttributable;
 import me.lauriichan.minecraft.pluginbase.util.math.InventoryMath;
@@ -593,11 +593,11 @@ public interface IGuiInventory extends IAttributable {
      * 
      * @return           the slots as map
      */
-    default Map<Integer, ItemStack> findSimilarSlots(final ItemStack itemStack) {
+    default Int2ObjectMap<ItemStack> findSimilarSlots(final ItemStack itemStack) {
         if (itemStack == null) {
-            return Collections.emptyMap();
+            return Int2ObjectMaps.emptyMap();
         }
-        final HashMap<Integer, ItemStack> map = new HashMap<>();
+        final Int2ObjectArrayMap<ItemStack> map = new Int2ObjectArrayMap<>();
         final int size = size();
         for (int index = 0; index < size; index++) {
             final ItemStack current = getItem(index);
@@ -616,11 +616,11 @@ public interface IGuiInventory extends IAttributable {
      * 
      * @return           the possible slots as map
      */
-    default Map<Integer, ItemStack> findPossibleSlots(final ItemStack itemStack) {
+    default Int2ObjectMap<ItemStack> findPossibleSlots(final ItemStack itemStack) {
         if (itemStack == null) {
-            return Collections.emptyMap();
+            return Int2ObjectMaps.emptyMap();
         }
-        final HashMap<Integer, ItemStack> map = new HashMap<>();
+        final Int2ObjectArrayMap<ItemStack> map = new Int2ObjectArrayMap<>();
         final int size = size();
         for (int index = 0; index < size; index++) {
             final ItemStack current = getItem(index);

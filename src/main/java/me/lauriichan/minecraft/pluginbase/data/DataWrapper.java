@@ -90,10 +90,16 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
     }
 
     @Override
-    public int reload(final boolean wipeAfterLoad) {
+    public int[] reload(final boolean force, final boolean wipeAfterLoad) {
+        return new int[] {
+            reloadSingle(force, wipeAfterLoad)
+        };
+    }
+
+    private int reloadSingle(final boolean force, final boolean wipeAfterLoad) {
         Wrapper<T> value = new Wrapper<>();
         if (source.exists()) {
-            if (lastTimeModified == source.lastModified() && !data.isModified()) {
+            if (!force && lastTimeModified == source.lastModified() && !data.isModified()) {
                 return SKIPPED;
             }
             if (migrator != null) {
@@ -165,7 +171,13 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
     }
 
     @Override
-    public int save(final boolean force) {
+    public int[] save(final boolean force) {
+        return new int[] {
+            saveSingle(force)
+        };
+    }
+
+    private int saveSingle(final boolean force) {
         if (!force && !data.isModified() && source.exists()) {
             return SKIPPED;
         }

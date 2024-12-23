@@ -2,7 +2,7 @@ package me.lauriichan.minecraft.pluginbase.inventory;
 
 import org.bukkit.event.inventory.InventoryType;
 
-final class NOPInventoryUpdater implements IGuiInventoryUpdater {
+public final class NOPInventoryUpdater implements IGuiInventoryUpdater {
     
     public static final NOPInventoryUpdater NOP = new NOPInventoryUpdater();
     
