@@ -209,7 +209,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
             handler.onUpdate(this, false);
         }
     }
-    
+
     @Override
     public void open(HumanEntity entity) {
         Inventory inv = inventory;

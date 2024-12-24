@@ -43,7 +43,7 @@ public final class GuiListener implements IListenerExtension {
     public void onClose(final InventoryCloseEvent event) {
         if (event.getInventory().getHolder() instanceof final IGuiInventory inventory && inventory.hasHandler()) {
             if (inventory.getHandler().onEventClose(event.getPlayer(), inventory)) {
-                scheduler.runTask(plugin, () -> event.getPlayer().openInventory(inventory.getInventory()));
+                scheduler.runTask(plugin, () -> inventory.open(event.getPlayer()));
             } else {
                 // Clear inventory on close to free up space
                 inventory.clear();
