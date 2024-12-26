@@ -85,6 +85,7 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             return;
         }
 
+        importClass(clazz, ISimpleLogger.class);
         importClass(clazz, Configuration.class);
         clazz.addField("private volatile boolean generated$modified0 = false;");
 
