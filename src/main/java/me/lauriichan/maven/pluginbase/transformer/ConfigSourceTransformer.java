@@ -53,6 +53,8 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             }
             configFields.add(new ConfigField(field, field.getAnnotation(ConfigValue.class).getStringValue()));
         }
+        importClass(clazz, ISimpleLogger.class);
+        importClass(clazz, Configuration.class);
         
         Object2ObjectArrayMap<String, ObjectArrayList<MethodSource<JavaClassSource>>> validators = new Object2ObjectArrayMap<>();
         final List<MethodSource<JavaClassSource>> methods = clazz.getMethods();
@@ -85,8 +87,6 @@ public class ConfigSourceTransformer implements ISourceTransformer {
             return;
         }
 
-        importClass(clazz, ISimpleLogger.class);
-        importClass(clazz, Configuration.class);
         clazz.addField("private volatile boolean generated$modified0 = false;");
 
         StringBuilder loadBuilder = new StringBuilder();
