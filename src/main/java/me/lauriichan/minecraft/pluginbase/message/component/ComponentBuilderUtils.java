@@ -7,8 +7,10 @@ import me.lauriichan.laylib.command.ActionMessage;
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder.TextAppender;
 import me.lauriichan.minecraft.pluginbase.util.color.ColorParser;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Entity;
 import net.md_5.bungee.api.chat.hover.content.Item;
 import net.md_5.bungee.api.chat.hover.content.Text;
@@ -27,13 +29,11 @@ final class ComponentBuilderUtils {
             SubComponentBuilder<?> component = builder.newComponent();
             SubComponentBuilder<?> lastComponent = component;
             for (int i = 0; i < lines.length; i++) {
-                if (lines[i].isBlank()) {
-                    component.newComponent().copyFrom(lastComponent).text("\n").finish();
-                    continue;
+                if (!lines[i].isBlank()) {
+                    lastComponent = appendLine(component, lastComponent, lines[i]);
                 }
-                lastComponent = appendLine(component, lastComponent, lines[i]);
                 if (i + 1 != lines.length) {
-                    lastComponent.appendText("\n");
+                    component.newComponent().text("\n").finish();
                 }
             }
             component.finish();
@@ -206,6 +206,68 @@ final class ComponentBuilderUtils {
             }
         }
         return builder.appendContent(message.message()).click(click).hover(hover);
+    }
+
+    public static String toColoredText(BaseComponent[] components) {
+        return toColoredText(components, ChatColor.COLOR_CHAR);
+    }
+
+    public static String toColoredText(BaseComponent[] components, char ch) {
+        StringBuilder builder = new StringBuilder();
+        for (BaseComponent component : components) {
+            appendColoredText(builder, component, ch);
+        }
+        return builder.toString();
+    }
+
+    public static String toColoredText(BaseComponent component) {
+        return toColoredText(component, ChatColor.COLOR_CHAR);
+    }
+
+    public static String toColoredText(BaseComponent component, char ch) {
+        StringBuilder builder = new StringBuilder();
+        appendColoredText(builder, component, ch);
+        return builder.toString();
+    }
+
+    private static void appendColoredText(StringBuilder builder, BaseComponent component, char ch) {
+        if (component instanceof TextComponent text) {
+            if (!text.getText().isBlank()) {
+                ChatColor color = text.getColorRaw();
+                if (color != null) {
+                    String colorName = color.getName();
+                    if (!colorName.startsWith("#")) {
+                        builder.append(ch).append(color.toString().charAt(1));
+                    } else {
+                        builder.append(ch).append('x');
+                        for (int i = 1; i < 7; i++) {
+                            builder.append(ch).append(colorName.charAt(i));
+                        }
+                    }
+                }
+                if (text.isBold()) {
+                    builder.append(ch).append(ChatColor.BOLD.toString().charAt(1));
+                }
+                if (text.isItalic()) {
+                    builder.append(ch).append(ChatColor.ITALIC.toString().charAt(1));
+                }
+                if (text.isUnderlined()) {
+                    builder.append(ch).append(ChatColor.UNDERLINE.toString().charAt(1));
+                }
+                if (text.isStrikethrough()) {
+                    builder.append(ch).append(ChatColor.STRIKETHROUGH.toString().charAt(1));
+                }
+                if (text.isObfuscated()) {
+                    builder.append(ch).append(ChatColor.MAGIC.toString().charAt(1));
+                }
+            }
+            builder.append(text.getText());
+        }
+        if (component.getExtra() != null) {
+            for (BaseComponent extra : component.getExtra()) {
+                appendColoredText(builder, extra, ch);
+            }
+        }
     }
 
 }

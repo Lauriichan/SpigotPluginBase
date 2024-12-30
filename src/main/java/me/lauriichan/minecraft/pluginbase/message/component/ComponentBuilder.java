@@ -21,7 +21,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
     public static ComponentBuilder<?, ?> create() {
         return new ComponentBuilderImpl();
     }
-    
+
     public static ComponentBuilder<?, ?> parse(String richString) {
         return new ComponentBuilderImpl().appendContent(richString).finish();
     }
@@ -129,6 +129,10 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         }
         return list;
     }
+    
+    public final ObjectList<SubComponentBuilder<?>> children() {
+        return ObjectLists.unmodifiable(builders);
+    }
 
     @Override
     public final BaseComponent[] buildComponentArray() {
@@ -142,7 +146,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
     public BaseComponent buildComponent() {
         return new TextComponent(buildComponentArray());
     }
-    
+
     public String asPlainText() {
         if (builders.isEmpty()) {
             return "";
@@ -153,9 +157,13 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         }
         return builder.toString();
     }
-    
+
     public String asLegacyText() {
-        return BaseComponent.toLegacyText(buildComponentArray());
+        return ComponentBuilderUtils.toColoredText(buildComponentArray());
+    }
+
+    public String asColoredText(char character) {
+        return ComponentBuilderUtils.toColoredText(buildComponentArray(), character);
     }
 
     /*
@@ -265,7 +273,8 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                     if (!builder.isEmpty()) {
                         builder.finish();
                     }
-                    builder = parent.newComponent().text(Character.toString(ch)).color(interpolatedColor(start, end, colorCur++ / colorMax));
+                    builder = parent.newComponent().text(Character.toString(ch))
+                        .color(interpolatedColor(start, end, colorCur++ / colorMax));
                 }
                 if (!builder.isEmpty()) {
                     builder.finish();
@@ -308,7 +317,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             }
             return parent;
         }
-        
+
         private Color interpolatedColor(SimpleColor start, SimpleColor end, double percentage) {
             return start.duplicate().multiply(1d - percentage).add(end.duplicate().multiply(percentage)).asAwtColor();
         }
