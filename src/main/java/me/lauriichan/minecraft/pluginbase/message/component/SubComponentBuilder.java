@@ -3,7 +3,7 @@ package me.lauriichan.minecraft.pluginbase.message.component;
 import java.awt.Color;
 
 import me.lauriichan.laylib.command.Actor;
-import me.lauriichan.laylib.localization.IMessage;
+import me.lauriichan.laylib.localization.Key;
 import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.laylib.logger.util.StringUtil;
 import net.md_5.bungee.api.ChatColor;
@@ -156,25 +156,11 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
             new HoverEvent(HoverEvent.Action.SHOW_TEXT, new net.md_5.bungee.api.chat.hover.content.Text(builder.buildComponentArray())));
     }
 
-    public SubComponentBuilder<P> hoverText(final MessageProvider provider, final String language) {
+    public SubComponentBuilder<P> hoverText(final MessageProvider provider, final Actor<?> actor, final Key... placeholders) {
         if (provider == null) {
             return this;
         }
-        return hoverText(provider.getMessage(language));
-    }
-
-    public SubComponentBuilder<P> hoverText(final MessageProvider provider) {
-        if (provider == null) {
-            return this;
-        }
-        return hoverText(provider.getMessage(Actor.DEFAULT_LANGUAGE));
-    }
-
-    public SubComponentBuilder<P> hoverText(final IMessage message) {
-        if (message == null) {
-            return this;
-        }
-        return hoverText(message.value());
+        return hoverText(actor.getTranslatedMessageAsString(provider, placeholders));
     }
 
     public SubComponentBuilder<P> hoverText(final String string) {

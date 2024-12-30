@@ -25,6 +25,7 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
         super(handle, plugin.messageManager());
         this.plugin = plugin;
         this.logger = plugin.logger();
+        System.out.println("Creating: " + (messageManager != null));
     }
 
     public ISimpleLogger logger() {
