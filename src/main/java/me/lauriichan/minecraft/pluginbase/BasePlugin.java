@@ -320,11 +320,8 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
      */
 
     private final void onCoreLoad() throws Throwable {
-        System.out.println("MESSAGE MANAGER CREATION");
         messageManager = new MessageManager();
-        System.out.println("ARGUMENT REGISTRY CREATION");
         argumentRegistry = new ArgumentRegistry();
-        System.out.println("SETUP STARTUP");
         setupStartupProperties();
     }
 
