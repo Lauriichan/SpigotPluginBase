@@ -95,7 +95,8 @@ public interface IHandler {
             return onClickSwap(entity, inventory, inventory.getItem(slot), event.getCurrentItem(), slot, ClickType.KEYBOARD);
         case MOVE_TO_OTHER_INVENTORY:
             if (event.getClickedInventory() == inventory.getInventory()) {
-                return onClickPickup(entity, inventory, event.getCurrentItem(), event.getSlot(), event.getCurrentItem().getAmount(), false, ClickType.SHIFT_LEFT);
+                return onClickPickup(entity, inventory, event.getCurrentItem(), event.getSlot(), event.getCurrentItem().getAmount(), false,
+                    event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT ? ClickType.SHIFT_RIGHT : ClickType.SHIFT_LEFT);
             } else {
                 return onClickMove(entity, inventory, inventory.findPossibleSlots(event.getCurrentItem()), event.getCurrentItem(),
                     event.getCurrentItem().getAmount());

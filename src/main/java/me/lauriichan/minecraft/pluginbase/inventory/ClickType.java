@@ -5,6 +5,7 @@ public enum ClickType {
     LEFT,
     SHIFT_LEFT,
     RIGHT,
+    SHIFT_RIGHT,
     KEYBOARD;
 
 }
