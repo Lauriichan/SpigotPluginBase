@@ -13,8 +13,8 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
 import me.lauriichan.minecraft.pluginbase.util.StringUtil;
-import me.lauriichan.minecraft.pluginbase.util.color.BukkitColor;
 
 public final class ItemEditor {
 
@@ -87,7 +87,7 @@ public final class ItemEditor {
         if (itemMeta == null) {
             return this;
         }
-        itemMeta.setDisplayName(BukkitColor.apply(name));
+        itemMeta.setDisplayName(ComponentBuilder.parse(name).asLegacyText());
         return this;
     }
 
