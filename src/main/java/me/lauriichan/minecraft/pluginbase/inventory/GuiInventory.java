@@ -223,6 +223,7 @@ public final class GuiInventory extends Attributable implements InventoryHolder,
                 inventoryChanged.set(false);
             }
             handler.onUpdate(this, false);
+            inv = inventory;
         }
         if (updateTitleOnOpen) {
             GuiInventoryReflection.updateTitle(entity, inv, ComponentBuilder.parse(this.title).asLegacyText());

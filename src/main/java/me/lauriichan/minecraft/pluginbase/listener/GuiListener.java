@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.ConditionConstant;
 import me.lauriichan.minecraft.pluginbase.extension.Extension;
 import me.lauriichan.minecraft.pluginbase.extension.ExtensionCondition;
@@ -18,10 +19,9 @@ import me.lauriichan.minecraft.pluginbase.inventory.IGuiInventory;
 @ExtensionCondition(name = ConditionConstant.ENABLE_GUI)
 public final class GuiListener implements IListenerExtension {
 
-    private final BukkitScheduler scheduler = Bukkit.getScheduler();
-    private final Plugin plugin;
+    private final BasePlugin<?> plugin;
 
-    public GuiListener(final Plugin plugin) {
+    public GuiListener(final BasePlugin<?> plugin) {
         this.plugin = plugin;
     }
 
@@ -43,7 +43,7 @@ public final class GuiListener implements IListenerExtension {
     public void onClose(final InventoryCloseEvent event) {
         if (event.getInventory().getHolder() instanceof final IGuiInventory inventory && inventory.hasHandler()) {
             if (inventory.getHandler().onEventClose(event.getPlayer(), inventory)) {
-                scheduler.runTask(plugin, () -> inventory.open(event.getPlayer()));
+                plugin.runTask(() -> inventory.open(event.getPlayer()));
             } else {
                 // Clear inventory on close to free up space
                 inventory.clear();

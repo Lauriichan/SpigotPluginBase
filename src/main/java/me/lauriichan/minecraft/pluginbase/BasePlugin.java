@@ -9,6 +9,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collections;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -313,6 +314,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     public final <E extends IExtension> IExtensionPool<E> extension(final Class<? extends IExtension> extensionType, final Class<E> type,
         final boolean instantiate) {
         return new ExtensionPoolImpl<>(this, extensionType, type, instantiate);
+    }
+    
+    public void runTask(Runnable runnable) {
+        getServer().getScheduler().runTask(this, runnable);
     }
 
     /*
