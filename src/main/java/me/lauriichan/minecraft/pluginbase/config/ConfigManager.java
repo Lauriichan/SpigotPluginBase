@@ -56,6 +56,7 @@ public final class ConfigManager {
 
     public ObjectList<IConfigWrapper<?>> wrappers() {
         return Stream.concat(configs.values().stream(), multiConfigs.values().stream().flatMap(config -> config.wrappers().stream()))
+            .sorted(IConfigWrapper.ORDER_WRAPPER)
             .collect(SimpleCollectors.toList());
     }
 

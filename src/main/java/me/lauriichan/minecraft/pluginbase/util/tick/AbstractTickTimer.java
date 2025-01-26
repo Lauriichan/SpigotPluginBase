@@ -137,6 +137,7 @@ public abstract class AbstractTickTimer {
                         secondTick = 0;
                     }
                 }
+                delta = nanoTime - System.nanoTime();
                 nextLength = this.length;
                 tickMillis = TimeUnit.NANOSECONDS.toMillis(nextLength - delta);
                 tickNanos = (int) (nextLength - delta - TimeUnit.MILLISECONDS.toNanos(tickMillis));

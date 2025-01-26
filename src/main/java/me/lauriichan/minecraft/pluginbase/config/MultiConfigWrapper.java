@@ -5,6 +5,7 @@ import java.util.Objects;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.extension.Order;
 
 public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extends IMultiConfigExtension<K, T, C>>
     implements IConfigWrapper<C> {
@@ -14,9 +15,13 @@ public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extend
     private final BasePlugin<?> plugin;
     private final E extension;
 
+    private final int order;
+
     public MultiConfigWrapper(BasePlugin<?> plugin, E extension) {
         this.plugin = plugin;
         this.extension = extension;
+        Order order = extension.type().getAnnotation(Order.class);
+        this.order = order == null ? 0 : order.value();
     }
 
     public E extension() {
@@ -52,6 +57,11 @@ public final class MultiConfigWrapper<K, T, C extends IConfigExtension, E extend
 
     public ObjectCollection<ConfigWrapper<C>> wrappers() {
         return configs.values();
+    }
+    
+    @Override
+    public int order() {
+        return order;
     }
 
     @Override

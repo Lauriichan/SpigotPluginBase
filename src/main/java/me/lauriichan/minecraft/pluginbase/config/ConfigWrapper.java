@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
+import me.lauriichan.minecraft.pluginbase.extension.Order;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
 public final class ConfigWrapper<T extends IConfigExtension> implements IConfigWrapper<T> {
@@ -39,6 +40,8 @@ public final class ConfigWrapper<T extends IConfigExtension> implements IConfigW
     private final ConfigMigrator migrator;
 
     private final String path;
+    
+    private final int order;
 
     private final T config;
     private final Class<T> configType;
@@ -57,6 +60,13 @@ public final class ConfigWrapper<T extends IConfigExtension> implements IConfigW
         this.configType = (Class<T>) config.getClass();
         this.source = Objects.requireNonNull(plugin.resource(path), "Couldn't find data source at '" + path + "'");
         this.handler = Objects.requireNonNull(extension.handler(), "Config handler can't be null");
+        Order order = configType.getAnnotation(Order.class);
+        this.order = order == null ? 0 : order.value();
+    }
+    
+    @Override
+    public int order() {
+        return order;
     }
 
     public T config() {

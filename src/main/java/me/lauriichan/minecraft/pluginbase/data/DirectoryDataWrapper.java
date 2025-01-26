@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.objects.ObjectSet;
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.data.IDirectoryDataExtension.FileData;
+import me.lauriichan.minecraft.pluginbase.extension.Order;
 import me.lauriichan.minecraft.pluginbase.resource.source.FileDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.PathDataSource;
@@ -64,6 +65,8 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
     private final DataMigrator migrator;
 
     private final String path;
+    
+    private final int order;
 
     private final D data;
     private final Class<D> dataType;
@@ -92,6 +95,13 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
         }
         this.handler = Objects.requireNonNull(extension.handler(), "Data handler can't be null");
         modified.defaultReturnValue(0);
+        Order order = dataType.getAnnotation(Order.class);
+        this.order = order == null ? 0 : order.value();
+    }
+    
+    @Override
+    public int order() {
+        return order;
     }
 
     @Override

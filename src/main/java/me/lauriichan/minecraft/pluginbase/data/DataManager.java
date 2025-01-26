@@ -63,6 +63,7 @@ public final class DataManager {
         return Stream
             .concat(Stream.concat(data.values().stream(), multiData.values().stream().flatMap(config -> config.wrappers().stream())),
                 directoryData.values().stream())
+            .sorted(IDataWrapper.ORDER_WRAPPER)
             .collect(SimpleCollectors.toList());
     }
 

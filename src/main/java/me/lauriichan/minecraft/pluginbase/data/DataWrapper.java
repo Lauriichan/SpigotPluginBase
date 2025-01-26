@@ -5,6 +5,7 @@ import java.util.Objects;
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.data.IDataHandler.Wrapper;
+import me.lauriichan.minecraft.pluginbase.extension.Order;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
 public final class DataWrapper<T, D extends IFileDataExtension<T>> implements IDataWrapper<T, D> {
@@ -41,6 +42,8 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
 
     private final String path;
     
+    private final int order;
+    
     private final D data;
     private final Class<D> dataType;
     
@@ -58,6 +61,13 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
         this.dataType = (Class<D>) data.getClass();
         this.source = Objects.requireNonNull(plugin.resource(path), "Couldn't find data source at '" + path + "'");
         this.handler = Objects.requireNonNull(extension.handler(), "Data handler can't be null");
+        Order order = dataType.getAnnotation(Order.class);
+        this.order = order == null ? 0 : order.value();
+    }
+    
+    @Override
+    public int order() {
+        return order;
     }
 
     @Override

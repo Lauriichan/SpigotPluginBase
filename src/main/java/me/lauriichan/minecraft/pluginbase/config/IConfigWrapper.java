@@ -1,6 +1,12 @@
 package me.lauriichan.minecraft.pluginbase.config;
 
+import java.util.Comparator;
+
 public interface IConfigWrapper<T extends IConfigExtension> {
+
+    final Comparator<IConfigWrapper<?>> ORDER_WRAPPER = (a, b) -> Integer.compare(b.order(), a.order());
+    
+    int order();
     
     Class<T> configType();
     
