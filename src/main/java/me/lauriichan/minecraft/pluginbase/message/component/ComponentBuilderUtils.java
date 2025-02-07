@@ -50,14 +50,20 @@ final class ComponentBuilderUtils {
             component.copyFrom(copyFormatting);
         }
         TextAppender<?> appender = null;
-        int last = 0;
+        int last = 0, previous = 0, length = content.length();
         for (int i = content.indexOf('&'); i != -1; i = content.indexOf('&', i + 1)) {
             if (appender != null) {
-                appender.text(content.substring(last, i)).finish();
+                appender.text(content.substring(previous > last ? previous : last, i)).finish();
                 appender = null;
                 component = component.finish().newComponent().copyFrom(component);
             } else {
-                component.appendText(content.substring(last, i));
+                component.appendText(content.substring(previous > last ? previous : last, i));
+            }
+            previous = i;
+            if (i + 1 >= length) {
+                component.appendText(content.substring(i, length));
+                last = length;
+                continue;
             }
             if (content.charAt(i + 1) != '#') {
                 // Apply formatting
@@ -80,6 +86,11 @@ final class ComponentBuilderUtils {
                 }
                 continue;
             }
+            if (i + 2 >= length) {
+                component.appendText(content.substring(i, length));
+                last = length;
+                continue;
+            }
             if (content.charAt(i + 2) != '[') {
                 // Apply hex color
                 ColorResult result = parseColor(content, i + 2);
@@ -87,7 +98,7 @@ final class ComponentBuilderUtils {
                     continue;
                 }
                 last = i + 2 + result.length();
-                if (content.charAt(last) == ';') {
+                if (last < length && content.charAt(last) == ';') {
                     last++;
                 }
                 if (!component.isEmpty()) {
@@ -108,7 +119,7 @@ final class ComponentBuilderUtils {
             int colorEnd = end.length() + i + 4 + start.length();
             int colorAmount = -1;
             int offsetIdx = colorEnd;
-            if (content.length() + 1 != colorEnd && content.charAt(colorEnd) != ']') {
+            if (length + 1 != colorEnd && content.charAt(colorEnd) != ']') {
                 if (content.charAt(colorEnd) != '/') {
                     continue;
                 }
@@ -128,12 +139,12 @@ final class ComponentBuilderUtils {
             }
             appender = component.newText().startColor(start.color()).endColor(end.color()).colorAmount(colorAmount);
         }
-        if (last == 0 || last != content.length()) {
+        if (last == 0 || last != length) {
             if (appender != null) {
-                appender.text(content.substring(last, content.length())).finish();
+                appender.text(content.substring(last, length)).finish();
                 component.finish();
             } else {
-                component.appendText(content.substring(last, content.length())).finish();
+                component.appendText(content.substring(last, length)).finish();
             }
         } else {
             component.finish();
