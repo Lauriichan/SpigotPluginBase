@@ -110,7 +110,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             return append;
         }
         for (SubComponentBuilder<?> other : builder.builders) {
-            append.newComponent().appendContent(other).finish();
+            append.appendContent(other).finish();
         }
         return append;
     }
