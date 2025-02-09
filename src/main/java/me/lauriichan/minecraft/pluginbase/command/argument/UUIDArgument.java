@@ -2,16 +2,14 @@ package me.lauriichan.minecraft.pluginbase.command.argument;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.lauriichan.laylib.command.Actor;
 import me.lauriichan.laylib.command.IArgumentMap;
 import me.lauriichan.laylib.command.IArgumentType;
 import me.lauriichan.laylib.command.Suggestions;
-import me.lauriichan.laylib.command.util.LevenshteinDistance;
+import me.lauriichan.minecraft.pluginbase.util.StringDistance;
 
 public class UUIDArgument implements IArgumentType<UUID> {
 
@@ -50,12 +48,7 @@ public class UUIDArgument implements IArgumentType<UUID> {
         if (!collection) {
             return;
         }
-        List<Map.Entry<String, Integer>> list = LevenshteinDistance.rankByDistance(input, selection.stream().map(UUID::toString).toList());
-        double max = list.stream().map(Map.Entry::getValue).collect(Collectors.summingInt(Integer::intValue));
-        for (int index = 0; index < list.size(); index++) {
-            Map.Entry<String, Integer> entry = list.get(index);
-            suggestions.suggest(1 - (entry.getValue().doubleValue() / max), entry.getKey());
-        }
+        StringDistance.suggestFor(input, suggestions, selection.stream().map(UUID::toString));
     }
 
     public static UUID uuidFromString(String value) {

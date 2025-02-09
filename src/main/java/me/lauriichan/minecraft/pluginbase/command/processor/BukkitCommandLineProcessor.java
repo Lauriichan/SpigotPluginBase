@@ -28,6 +28,7 @@ import me.lauriichan.laylib.localization.Key;
 import me.lauriichan.laylib.reflection.ClassUtil;
 import me.lauriichan.minecraft.pluginbase.command.BukkitActor;
 import me.lauriichan.minecraft.pluginbase.message.CommandManagerMessage;
+import me.lauriichan.minecraft.pluginbase.util.StringDistance;
 import me.lauriichan.minecraft.pluginbase.util.StringReader;
 
 final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
@@ -43,11 +44,11 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
     public boolean requiresListener() {
         return false;
     }
-    
+
     public BiFunction<BukkitActor<?>, NodeArgument, String> argumentToStringMapper() {
         return argumentToStringMapper;
     }
-    
+
     public void argumentToStringMapper(BiFunction<BukkitActor<?>, NodeArgument, String> argumentToStringMapper) {
         this.argumentToStringMapper = argumentToStringMapper;
     }
@@ -57,8 +58,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
      */
 
     @Override
-    public void onCommand(final BukkitActor<?> actor, final CommandManager commandManager, final String commandName,
-        final String[] args) {
+    public void onCommand(final BukkitActor<?> actor, final CommandManager commandManager, final String commandName, final String[] args) {
         final Triple<NodeCommand, Node, String> triple = commandManager.findNode(commandName, args);
         if (triple == null) {
             actor.sendTranslatedMessage("command.process.create.no-command", Key.of("label", commandName));
@@ -138,7 +138,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
     /*
      * Tab completion
      */
-    
+
     @Override
     public List<String> onTabComplete(final BukkitActor<?> actor, final CommandManager commandManager, final String commandName,
         final String[] args, final Location location) {
@@ -147,21 +147,27 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
         }
         final Triple<NodeCommand, Node, String> triple = commandManager.findNode(commandName, args);
         if (triple == null) {
-            return getPermittedCommands(commandManager, actor);
+            if (args.length != 1) {
+                return Collections.emptyList();
+            }
+            return rankSuggestions(args[0], getPermittedCommands(commandManager, actor));
         }
         final NodeCommand nodeCommand = triple.getA();
         if (nodeCommand.isRestricted() && !actor.hasPermission(nodeCommand.getPermission())) {
-            return getPermittedCommands(commandManager, actor);
+            if (args.length != 1) {
+                return Collections.emptyList();
+            }
+            return rankSuggestions(args[0], getPermittedCommands(commandManager, actor));
         }
         String[] tmpPath = triple.getC().substring(commandManager.getPrefix().length()).split(" ");
         final String[] path = new String[tmpPath.length - 1];
         System.arraycopy(tmpPath, 1, path, 0, path.length);
         if (path.length == args.length) {
-            return Collections.singletonList(path[path.length - 1]);
+            return rankSuggestions(args[args.length - 1], Collections.singletonList(path[path.length - 1]));
         }
         final Node node = triple.getB();
         if (node.hasChildren() && args.length - path.length == 1) {
-            return Arrays.asList(triple.getB().getNames());
+            return rankSuggestions(args[args.length - 1], Arrays.asList(triple.getB().getNames()));
         }
         final NodeAction action = node.getAction();
         if (action == null) {
@@ -202,7 +208,8 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
                     if (startChar == null || parts.length != 0 && parts[parts.length - 1].endsWith(Character.toString(startChar))) {
                         return Collections.singletonList(data.endsWith(" ") ? "" : parts[parts.length - 1]);
                     }
-                    return Collections.singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
+                    return Collections
+                        .singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
                 }
                 if (startChar != null && StringReader.isQuote(startChar)) {
                     return Collections.singletonList(startChar + data + startChar);
@@ -212,7 +219,8 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
             if (!reader.skipWhitespace().hasNext()) {
                 if (startChar != null && StringReader.isQuote(startChar) && data.endsWith(Character.toString(startChar))) {
                     String[] parts = data.split(" ");
-                    return Collections.singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
+                    return Collections
+                        .singletonList(data.endsWith(" ") ? Character.toString(startChar) : (parts[parts.length - 1] + startChar));
                 }
                 return createSuggestions(actor, "", argument, map);
             }
@@ -220,7 +228,7 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
             data = reader.read();
             try {
                 process.provide(actor, data, map);
-                
+
             } catch (final IllegalArgumentException exp) {
                 return createSuggestions(actor, data, argument, map);
             }
@@ -232,6 +240,18 @@ final class BukkitCommandLineProcessor implements IBukkitCommandProcessor {
     private List<String> getPermittedCommands(CommandManager commandManager, BukkitActor<?> actor) {
         return commandManager.getCommands().stream().filter(cmd -> !cmd.isRestricted() || actor.hasPermission(cmd.getPermission()))
             .flatMap(cmd -> Streams.concat(Stream.of(cmd.getName()), cmd.getAliases().stream())).toList();
+    }
+
+    private List<String> rankSuggestions(final String data, final List<String> list) {
+        if (data == null || data.isBlank()) {
+            return list;
+        }
+        final Suggestions suggestions = new Suggestions();
+        StringDistance.suggestFor(data, suggestions, list.stream());
+        if (!suggestions.hasSuggestions()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(suggestions.getSuggestions(suggestionAmount)).map(Map.Entry::getKey).toList();
     }
 
     private List<String> createSuggestions(final Actor<?> actor, final String data, final NodeArgument argument, final IArgumentMap map) {
