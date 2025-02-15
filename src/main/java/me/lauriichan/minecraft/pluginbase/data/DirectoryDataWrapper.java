@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Objects;
 import org.bukkit.NamespacedKey;
+import org.bukkit.plugin.Plugin;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
@@ -37,7 +38,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
     }
 
     private final Object2ObjectMap<String, FileKey> pathToKey = Object2ObjectMaps.synchronize(new Object2ObjectArrayMap<>());
-    private final String keyFormat;
+    private final Plugin plugin;
 
     private final Object2LongMap<FileKey> modified = Object2LongMaps.synchronize(new Object2LongArrayMap<>());
 
@@ -57,7 +58,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
 
     @SuppressWarnings("unchecked")
     public DirectoryDataWrapper(final BasePlugin<?> plugin, final D extension, final String path) {
-        this.keyFormat = plugin.getDescription().getName() + ":%s";
+        this.plugin = plugin.bukkitPlugin();
         this.logger = plugin.logger();
         this.migrator = plugin.dataMigrator();
         this.path = path;
@@ -83,7 +84,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
         if (key != null) {
             return key;
         }
-        NamespacedKey location = NamespacedKey.fromString(keyFormat.formatted(path));
+        NamespacedKey location = NamespacedKey.fromString(path, plugin);
         if (location == null) {
             return null;
         }
@@ -173,7 +174,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
                     continue;
                 }
                 if (!isFile) {
-                    files = root.listFiles();
+                    files = file.listFiles();
                     if (files == null || files.length == 0) {
                         continue;
                     }
@@ -181,7 +182,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
                     continue;
                 }
                 path = file.getAbsolutePath();
-                path = path.substring(pathLength, path.length() - (extension == null ? 0 : extension.length()));
+                path = path.substring(pathLength, path.length() - (extension == null ? 0 : extension.length() + 1));
                 if (path.isBlank()) {
                     logger.warning("Failed to check file '{0}' as its' path '{1}' is not a valid key path.", name, path);
                     continue;
