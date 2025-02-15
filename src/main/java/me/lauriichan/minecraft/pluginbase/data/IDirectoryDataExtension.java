@@ -1,6 +1,7 @@
 package me.lauriichan.minecraft.pluginbase.data;
 
 import java.io.File;
+import java.util.function.BiFunction;
 
 import org.bukkit.NamespacedKey;
 
@@ -53,6 +54,14 @@ public interface IDirectoryDataExtension<T> extends IDataExtension<T> {
     }
 
     abstract String path();
+
+    abstract void keyWrapper(BiFunction<String, String, FileKey> keyWrapper);
+
+    abstract BiFunction<String, String, FileKey> keyWrapper();
+
+    default FileKey keyOf(String path, String extension) {
+        return keyWrapper().apply(path, extension);
+    }
 
     default ObjectSet<FileKey> newData() {
         return ObjectSets.emptySet();

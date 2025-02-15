@@ -75,6 +75,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
         modified.defaultReturnValue(0);
         Order order = dataType.getAnnotation(Order.class);
         this.order = order == null ? 0 : order.value();
+        data.keyWrapper(this::keyOf);
     }
 
     protected FileKey keyOf(String path, String extension) {
