@@ -34,6 +34,13 @@ public interface IDataSource {
      * @return the source object
      */
     Object getSource();
+    
+    /**
+     * Gets the relative path of this object
+     * 
+     * @return the relative path
+     */
+    String getPath();
 
     /**
      * Gets the time that the source was last modified at

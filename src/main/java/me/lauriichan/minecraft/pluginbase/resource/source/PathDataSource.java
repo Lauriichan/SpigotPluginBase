@@ -30,6 +30,11 @@ public final class PathDataSource implements IDataSource {
     public Path getSource() {
         return path;
     }
+    
+    @Override
+    public String getPath() {
+        return path.toAbsolutePath().toString();
+    }
 
     @Override
     public long lastModified() {

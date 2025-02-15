@@ -27,6 +27,11 @@ public final class FileDataSource implements IDataSource {
     public File getSource() {
         return file;
     }
+    
+    @Override
+    public String getPath() {
+        return file.getAbsolutePath();
+    }
 
     @Override
     public long lastModified() {
