@@ -77,7 +77,7 @@ public final class ItemEditor {
 
     // Name
     public String getName() {
-        if (itemMeta == null || itemMeta.hasDisplayName()) {
+        if (itemMeta == null || !itemMeta.hasDisplayName()) {
             return "";
         }
         return itemMeta.getDisplayName();
