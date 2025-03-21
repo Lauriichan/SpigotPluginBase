@@ -93,6 +93,11 @@ public interface IHandler {
                 return false;
             }
             return onClickSwap(entity, inventory, inventory.getItem(slot), event.getCurrentItem(), slot, ClickType.KEYBOARD);
+        case HOTBAR_MOVE_AND_READD:
+            if (event.getClickedInventory() != inventory.getInventory()) {
+                return false;
+            }
+            return onClickSwap(entity, inventory, inventory.getItem(slot), event.getCurrentItem(), slot, ClickType.KEYBOARD);
         case MOVE_TO_OTHER_INVENTORY:
             if (event.getClickedInventory() == inventory.getInventory()) {
                 return onClickPickup(entity, inventory, event.getCurrentItem(), event.getSlot(), event.getCurrentItem().getAmount(), false,
@@ -108,6 +113,10 @@ public interface IHandler {
             return onClickClone(entity, inventory, event.getCurrentItem(), slot);
         case COLLECT_TO_CURSOR:
             return true;
+        case DROP_ALL_CURSOR:
+        case DROP_ONE_CURSOR:
+        case NOTHING:
+        case UNKNOWN:
         default:
             return false;
         }

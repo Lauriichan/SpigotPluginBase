@@ -80,7 +80,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
     }
 
     protected FileKey keyOf(String path, String extension) {
-        FileKey key = pathToKey.get(path);
+        FileKey key = pathToKey.get(path = path.replace('\\', '/'));
         if (key != null) {
             return key;
         }
