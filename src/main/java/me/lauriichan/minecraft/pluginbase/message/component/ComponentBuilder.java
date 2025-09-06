@@ -26,7 +26,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         return new ComponentBuilderImpl().appendContent(richString).finish();
     }
 
-    protected final ObjectArrayList<SubComponentBuilder<?>> builders = new ObjectArrayList<>();
+    protected final ObjectArrayList<SubComponentBuilder<?, ?>> builders = new ObjectArrayList<>();
     protected final P parent;
 
     @SuppressWarnings("unchecked")
@@ -41,32 +41,36 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         this.parent = parent;
     }
 
-    protected final void add(SubComponentBuilder<?> builder) {
+    protected final void add(SubComponentBuilder<?, ?> builder) {
         if (builders.contains(builder) || builder.parent != this) {
             return;
         }
         builders.add(builder);
     }
 
-    public SubComponentBuilder<S> newComponent() {
-        return new SubComponentBuilder<>(self);
-    }
-
-    public TextAppender<S> newText() {
+    public final TextAppender<S> newGradientText() {
         return new TextAppender<>(self);
     }
 
-    public SubComponentBuilder<S> appendContent(final String richString) {
-        if (richString == null || richString.isEmpty()) {
-            return newComponent();
-        }
-        if (richString.isBlank()) {
-            return newComponent().text(richString);
-        }
-        return ComponentBuilderUtils.append(newComponent(), richString);
+    public final TextComponentBuilder<S> newTextComponent() {
+        return new TextComponentBuilder<>(self);
     }
 
-    public SubComponentBuilder<S> appendContent(final ActionMessage message) {
+    public final TranslationComponentBuilder<S> newTranslationComponent() {
+        return new TranslationComponentBuilder<>(self);
+    }
+
+    public final TextComponentBuilder<S> appendContent(final String richString) {
+        if (richString == null || richString.isEmpty()) {
+            return newTextComponent();
+        }
+        if (richString.isBlank()) {
+            return newTextComponent().text(richString);
+        }
+        return ComponentBuilderUtils.append(newTextComponent(), richString);
+    }
+
+    public final TextComponentBuilder<S> appendContent(final ActionMessage message) {
         if (message == null) {
             throw new NullPointerException("ActionMessage can't be null");
         }
@@ -76,40 +80,40 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         return ComponentBuilderUtils.appendAction(self, message);
     }
 
-    public SubComponentBuilder<S> appendContent(final IMessage message) {
+    public final TextComponentBuilder<S> appendContent(final IMessage message) {
         if (message == null) {
             throw new NullPointerException("Message can't be null");
         }
         return appendContent(message.value());
     }
 
-    public SubComponentBuilder<S> appendContent(final MessageProvider provider, final Actor<?> actor) {
+    public final TextComponentBuilder<S> appendContent(final MessageProvider provider, final Actor<?> actor) {
         return appendContent(provider, actor.getLanguage());
     }
 
-    public SubComponentBuilder<S> appendContent(final MessageProvider provider) {
+    public final TextComponentBuilder<S> appendContent(final MessageProvider provider) {
         return appendContent(provider, Actor.DEFAULT_LANGUAGE);
     }
 
-    public SubComponentBuilder<S> appendContent(final MessageProvider provider, final String language) {
+    public final TextComponentBuilder<S> appendContent(final MessageProvider provider, final String language) {
         if (provider == null) {
             throw new NullPointerException("Provider can't be null");
         }
         return appendContent(provider.getMessage(language));
     }
 
-    public SubComponentBuilder<S> appendContent(ComponentBuilder<?, ?> builder) {
+    public final TextComponentBuilder<S> appendContent(ComponentBuilder<?, ?> builder) {
         if (builder == null) {
             throw new NullPointerException("Builder can't be null");
         }
-        SubComponentBuilder<S> append = newComponent();
-        if (builder instanceof SubComponentBuilder<?> subBuilder) {
+        TextComponentBuilder<S> append = newTextComponent();
+        if (builder instanceof TextComponentBuilder<?> subBuilder) {
             append.loadFrom(subBuilder);
         }
         if (builder.isEmpty()) {
             return append;
         }
-        for (SubComponentBuilder<?> other : builder.builders) {
+        for (SubComponentBuilder<?, ?> other : builder.builders) {
             append.appendContent(other).finish();
         }
         return append;
@@ -124,13 +128,13 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             return ObjectLists.emptyList();
         }
         ObjectArrayList<BaseComponent> list = new ObjectArrayList<>(builders.size());
-        for (SubComponentBuilder<?> builder : builders) {
+        for (SubComponentBuilder<?, ?> builder : builders) {
             list.add(builder.buildComponent());
         }
         return list;
     }
-    
-    public final ObjectList<SubComponentBuilder<?>> children() {
+
+    public final ObjectList<SubComponentBuilder<?, ?>> children() {
         return ObjectLists.unmodifiable(builders);
     }
 
@@ -158,11 +162,11 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
         return builder.toString();
     }
 
-    public String asLegacyText() {
+    public final String asLegacyText() {
         return ComponentBuilderUtils.toColoredText(buildComponentArray());
     }
 
-    public String asColoredText(char character) {
+    public final String asColoredText(char character) {
         return ComponentBuilderUtils.toColoredText(buildComponentArray(), character);
     }
 
@@ -239,16 +243,16 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                 return parent;
             }
             if (text.isBlank() || (start == null && end == null)) {
-                parent.newComponent().text(text).finish();
+                parent.newTextComponent().text(text).finish();
                 return parent;
             }
             if (Objects.equals(start, end) || (start != null && end == null) || (start == null && end != null)) {
-                parent.newComponent().text(text).color(start == null ? end : start).finish();
+                parent.newTextComponent().text(text).color(start == null ? end : start).finish();
                 return parent;
             }
             int colorAmount = this.colorAmount;
             if (colorAmount == 1) {
-                parent.newComponent().text(text).color(start == null ? end : start).finish();
+                parent.newTextComponent().text(text).color(start == null ? end : start).finish();
                 return parent;
             }
             SimpleColor start = SimpleColor.sRGB(this.start).toOkLab();
@@ -263,7 +267,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             double colorMax = Math.max(colorAmount - 1, 1); // Prevent divided by 0
             char[] chars = text.toCharArray();
             if (charsPerStep == 1 && remainingCharacters == 0) {
-                SubComponentBuilder<?> builder = parent.newComponent();
+                TextComponentBuilder<?> builder = parent.newTextComponent();
                 for (int i = 0; i < chars.length; i++) {
                     char ch = chars[i];
                     if (Character.isWhitespace(ch)) {
@@ -273,7 +277,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                     if (!builder.isEmpty()) {
                         builder.finish();
                     }
-                    builder = parent.newComponent().text(Character.toString(ch))
+                    builder = parent.newTextComponent().text(Character.toString(ch))
                         .color(interpolatedColor(start, end, colorCur++ / colorMax));
                 }
                 if (!builder.isEmpty()) {
@@ -285,7 +289,7 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
             int charsInPart = 0;
             double charCounter = 0;
             boolean first = true;
-            SubComponentBuilder<?> builder = parent.newComponent();
+            TextComponentBuilder<?> builder = parent.newTextComponent();
             for (int i = 0; i < chars.length; i++) {
                 char ch = chars[i];
                 if (Character.isWhitespace(ch)) {
@@ -295,12 +299,12 @@ public abstract class ComponentBuilder<P extends ComponentBuilder<?, ?>, S exten
                 if (first) {
                     first = false;
                     if (!builder.isEmpty()) {
-                        builder = builder.finish().newComponent();
+                        builder = builder.finish().newTextComponent();
                     }
                     builder.color(interpolatedColor(start, end, colorCur++ / colorMax));
                 }
                 if (charsInPart >= charsPerStep && charCounter < 1d) {
-                    builder = builder.finish().newComponent().color(interpolatedColor(start, end, colorCur++ / colorMax));
+                    builder = builder.finish().newTextComponent().color(interpolatedColor(start, end, colorCur++ / colorMax));
                     first = false;
                     charsInPart = 0;
                 }

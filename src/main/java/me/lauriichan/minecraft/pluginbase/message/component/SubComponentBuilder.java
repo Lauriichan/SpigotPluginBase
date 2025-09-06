@@ -13,133 +13,94 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Entity;
 
-public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends ComponentBuilder<P, SubComponentBuilder<P>> {
-
-    public static SubComponentBuilder<?> parse(String richString) {
-        return ComponentBuilder.create().appendContent(richString);
-    }
-
-    private final TextComponent component = new TextComponent();
+public abstract class SubComponentBuilder<P extends ComponentBuilder<?, ?>, S extends SubComponentBuilder<P, S>>
+    extends ComponentBuilder<P, S> implements ISendable {
 
     SubComponentBuilder(P parent) {
         super(parent);
     }
 
-    @SuppressWarnings({
-        "unchecked",
-        "rawtypes"
-    })
-    @Override
-    public SubComponentBuilder<SubComponentBuilder<P>> newComponent() {
-        return new SubComponentBuilder(this);
-    }
+    protected abstract BaseComponent component();
 
-    public SubComponentBuilder<P> color(Color color) {
+    public final S color(Color color) {
         return color(ChatColor.of(color));
     }
 
-    public SubComponentBuilder<P> color(ChatColor color) {
-        component.setColor(color);
-        return this;
+    public final S color(ChatColor color) {
+        component().setColor(color);
+        return self;
     }
 
-    public ChatColor color() {
-        return component.getColor();
+    public final ChatColor color() {
+        return component().getColor();
     }
 
-    public SubComponentBuilder<P> apply(Formatting formatting) {
-        formatting.apply(component, true);
-        return this;
+    public final S apply(Formatting formatting) {
+        formatting.apply(component(), true);
+        return self;
     }
 
-    public SubComponentBuilder<P> unapply(Formatting formatting) {
-        formatting.apply(component, false);
-        return this;
+    public final S unapply(Formatting formatting) {
+        formatting.apply(component(), false);
+        return self;
     }
 
-    public boolean hasFormatting(Formatting formatting) {
-        return formatting.isApplied(component);
+    public final boolean hasFormatting(Formatting formatting) {
+        return formatting.isApplied(component());
     }
 
-    public SubComponentBuilder<P> text(String text) {
-        component.setText(text);
-        return this;
-    }
-
-    public SubComponentBuilder<P> appendText(String text) {
-        String compText = component.getText();
-        if (compText == null) {
-            compText = "";
-        }
-        component.setText(compText + text);
-        return this;
-    }
-
-    public SubComponentBuilder<P> appendChar(char ch) {
-        String compText = component.getText();
-        if (compText == null) {
-            compText = "";
-        }
-        component.setText(compText + ch);
-        return this;
-    }
-
-    public String text() {
-        return component.getText();
-    }
-
-    public SubComponentBuilder<P> clickUrl(final String url, final Object... format) {
+    public final S clickUrl(final String url, final Object... format) {
         return clickUrl(StringUtil.format(url, format));
     }
 
-    public SubComponentBuilder<P> clickFile(final String file, final Object... format) {
+    public final S clickFile(final String file, final Object... format) {
         return clickFile(StringUtil.format(file, format));
     }
 
-    public SubComponentBuilder<P> clickCopy(final String copy, final Object... format) {
+    public final S clickCopy(final String copy, final Object... format) {
         return clickCopy(StringUtil.format(copy, format));
     }
 
-    public SubComponentBuilder<P> clickSuggest(final String suggest, final Object... format) {
+    public final S clickSuggest(final String suggest, final Object... format) {
         return clickSuggest(StringUtil.format(suggest, format));
     }
 
-    public SubComponentBuilder<P> clickRun(final String run, final Object... format) {
+    public final S clickRun(final String run, final Object... format) {
         return clickRun(StringUtil.format(run, format));
     }
 
-    public SubComponentBuilder<P> clickUrl(final String url) {
+    public final S clickUrl(final String url) {
         return click(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
     }
 
-    public SubComponentBuilder<P> clickFile(final String file) {
+    public final S clickFile(final String file) {
         return click(new ClickEvent(ClickEvent.Action.OPEN_FILE, file));
     }
 
-    public SubComponentBuilder<P> clickCopy(final String copy) {
+    public final S clickCopy(final String copy) {
         return click(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, copy));
     }
 
-    public SubComponentBuilder<P> clickSuggest(final String suggest) {
+    public final S clickSuggest(final String suggest) {
         return click(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, suggest));
     }
 
-    public SubComponentBuilder<P> clickRun(final String run) {
+    public final S clickRun(final String run) {
         return click(new ClickEvent(ClickEvent.Action.RUN_COMMAND, run));
     }
 
-    public SubComponentBuilder<P> click(ClickEvent event) {
-        component.setClickEvent(event);
-        return this;
+    public final S click(ClickEvent event) {
+        component().setClickEvent(event);
+        return self;
     }
 
-    public ClickEvent click() {
-        return component.getClickEvent();
+    public final ClickEvent click() {
+        return component().getClickEvent();
     }
 
-    public SubComponentBuilder<P> hoverEntity(final org.bukkit.entity.Entity entity) {
+    public final S hoverEntity(final org.bukkit.entity.Entity entity) {
         if (entity == null) {
-            return this;
+            return self;
         }
         final TextComponent component = new TextComponent();
         component.setExtra(ComponentBuilder.create()
@@ -148,83 +109,56 @@ public final class SubComponentBuilder<P extends ComponentBuilder<?, ?>> extends
             new Entity(entity.getType().getKey().toString(), entity.getUniqueId().toString(), component)));
     }
 
-    public SubComponentBuilder<P> hoverText(final ComponentBuilder<?, ?> builder) {
+    public final S hoverText(final ComponentBuilder<?, ?> builder) {
         if (builder == null) {
-            return this;
+            return self;
         }
         return hover(
             new HoverEvent(HoverEvent.Action.SHOW_TEXT, new net.md_5.bungee.api.chat.hover.content.Text(builder.buildComponentArray())));
     }
 
-    public SubComponentBuilder<P> hoverText(final MessageProvider provider, final Actor<?> actor, final Key... placeholders) {
+    public final S hoverText(final MessageProvider provider, final Actor<?> actor, final Key... placeholders) {
         if (provider == null) {
-            return this;
+            return self;
         }
         return hoverText(actor.getTranslatedMessageAsString(provider, placeholders));
     }
 
-    public SubComponentBuilder<P> hoverText(final String string) {
+    public final S hoverText(final String string) {
         if (string == null) {
-            return this;
+            return self;
         }
         return hover(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
             new net.md_5.bungee.api.chat.hover.content.Text(ComponentBuilder.create().appendContent(string).buildComponentArray())));
     }
 
-    public SubComponentBuilder<P> hover(HoverEvent event) {
-        component.setHoverEvent(event);
-        return this;
+    public final S hover(HoverEvent event) {
+        component().setHoverEvent(event);
+        return self;
     }
 
-    public HoverEvent hover() {
-        return component.getHoverEvent();
+    public final HoverEvent hover() {
+        return component().getHoverEvent();
     }
 
-    public SubComponentBuilder<P> copyFrom(SubComponentBuilder<?> component) {
+    public final S copyFrom(SubComponentBuilder<?, ?> component) {
         return copyFrom(component, false);
     }
 
-    public SubComponentBuilder<P> copyFrom(SubComponentBuilder<?> component, boolean copyReset) {
-        if (component.component.isReset() && !copyReset) {
-            return this;
+    public final S copyFrom(SubComponentBuilder<?, ?> component, boolean copyReset) {
+        if (component.component().isReset() && !copyReset) {
+            return self;
         }
-        this.component.copyFormatting(component.component);
-        return this;
+        component().copyFormatting(component.component());
+        return self;
     }
 
-    public SubComponentBuilder<P> loadFrom(SubComponentBuilder<?> component) {
-        this.component.setText(component.component.getText());
-        this.component.copyFormatting(component.component);
-        return this;
+    public S loadFrom(SubComponentBuilder<?, ?> component) {
+        component().copyFormatting(component.component());
+        return self;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return super.isEmpty() && (component.getText() == null || component.getText().isEmpty());
-    }
-
-    @Override
-    public BaseComponent buildComponent() {
-        TextComponent output = component.duplicate();
-        if (!super.isEmpty()) {
-            output.setExtra(buildComponentList());
-        }
-        return output;
-    }
-
-    @Override
-    public String asPlainText() {
-        if (builders.isEmpty()) {
-            return component.getText();
-        }
-        StringBuilder builder = new StringBuilder(component.getText());
-        for (int i = 0; i < builders.size(); i++) {
-            builder.append(builders.get(i).asPlainText());
-        }
-        return builder.toString();
-    }
-
-    public P finish() {
+    public final P finish() {
         parent.add(this);
         return parent;
     }

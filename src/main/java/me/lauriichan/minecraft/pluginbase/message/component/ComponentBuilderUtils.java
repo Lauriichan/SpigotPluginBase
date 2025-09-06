@@ -23,17 +23,17 @@ final class ComponentBuilderUtils {
         throw new UnsupportedOperationException();
     }
 
-    public static <S extends ComponentBuilder<?, ?>> SubComponentBuilder<S> append(SubComponentBuilder<S> builder, String content) {
+    public static <S extends SubComponentBuilder<?, ?>> S append(S builder, String content) {
         String[] lines = content.split("\n");
         if (lines.length > 1) {
-            SubComponentBuilder<?> component = builder.newComponent();
-            SubComponentBuilder<?> lastComponent = component;
+            TextComponentBuilder<?> component = builder.newTextComponent();
+            TextComponentBuilder<?> lastComponent = component;
             for (int i = 0; i < lines.length; i++) {
                 if (!lines[i].isBlank()) {
                     lastComponent = appendLine(component, lastComponent, lines[i]);
                 }
                 if (i + 1 != lines.length) {
-                    component.newComponent().text("\n").finish();
+                    component.newTextComponent().text("\n").finish();
                 }
             }
             component.finish();
@@ -43,9 +43,9 @@ final class ComponentBuilderUtils {
         return builder;
     }
 
-    private static <S extends ComponentBuilder<?, ?>> SubComponentBuilder<?> appendLine(SubComponentBuilder<S> builder,
-        SubComponentBuilder<?> copyFormatting, String content) {
-        SubComponentBuilder<?> component = builder.newComponent();
+    private static <S extends SubComponentBuilder<?, ?>> TextComponentBuilder<?> appendLine(S builder,
+        TextComponentBuilder<?> copyFormatting, String content) {
+        TextComponentBuilder<?> component = builder.newTextComponent();
         if (copyFormatting != null) {
             component.copyFrom(copyFormatting);
         }
@@ -55,7 +55,7 @@ final class ComponentBuilderUtils {
             if (appender != null) {
                 appender.text(content.substring(previous > last ? previous : last, i)).finish();
                 appender = null;
-                component = component.finish().newComponent().copyFrom(component);
+                component = component.finish().newTextComponent().copyFrom(component);
             } else {
                 component.appendText(content.substring(previous > last ? previous : last, i));
             }
@@ -65,21 +65,48 @@ final class ComponentBuilderUtils {
                 last = length;
                 continue;
             }
-            if (content.charAt(i + 1) != '#') {
+            char nextChar = content.charAt(i + 1);
+            if (nextChar != '#') {
+                if (nextChar == 't') {
+                    if (i + 3 >= length || content.charAt(i + 2) != '{') {
+                        component.appendText(content.substring(i, length));
+                        last = length;
+                        continue;
+                    }
+                    int closeIndex = content.indexOf('}', i + 2);
+                    if (closeIndex == -1) {
+                        component.appendText(content.substring(i, length));
+                        last = length;
+                        continue;
+                    }
+                    String translationId = content.substring(i + 3, closeIndex);
+                    last = i + 3 + translationId.length();
+                    ComponentBuilder<?, ?> parent = component;
+                    if (!component.isEmpty()) {
+                        parent = component.finish();
+                    }
+                    parent.newTranslationComponent().translationId(translationId).copyFrom(component).finish();
+                    if (component == parent) {
+                        component = component.finish().newTextComponent().copyFrom(component);
+                    } else {
+                        component = parent.newTextComponent().copyFrom(component);
+                    }
+                    continue;
+                }
                 // Apply formatting
-                ChatColor format = ChatColor.getByChar(content.charAt(i + 1));
+                ChatColor format = ChatColor.getByChar(nextChar);
                 if (format == null) {
                     continue;
                 }
                 Formatting formatting = Formatting.find(format);
                 last = i + 2;
                 if (!component.isEmpty()) {
-                    component = component.finish().newComponent().copyFrom(component);
+                    component = component.finish().newTextComponent().copyFrom(component);
                 }
                 if (formatting != null) {
                     component.apply(formatting);
                     if (formatting == Formatting.RESET) {
-                        component = component.finish().newComponent();
+                        component = component.finish().newTextComponent();
                     }
                 } else {
                     component.color(format);
@@ -102,7 +129,7 @@ final class ComponentBuilderUtils {
                     last++;
                 }
                 if (!component.isEmpty()) {
-                    component = component.finish().newComponent().copyFrom(component);
+                    component = component.finish().newTextComponent().copyFrom(component);
                 }
                 component.color(result.color());
                 continue;
@@ -135,9 +162,9 @@ final class ComponentBuilderUtils {
             }
             last = offsetIdx + 1;
             if (!component.isEmpty()) {
-                component = component.finish().newComponent().copyFrom(component);
+                component = component.finish().newTextComponent().copyFrom(component);
             }
-            appender = component.newText().startColor(start.color()).endColor(end.color()).colorAmount(colorAmount);
+            appender = component.newGradientText().startColor(start.color()).endColor(end.color()).colorAmount(colorAmount);
         }
         if (last == 0 || last != length) {
             if (appender != null) {
@@ -174,7 +201,7 @@ final class ComponentBuilderUtils {
         return new ColorResult(color, hex.length());
     }
 
-    public static <S extends ComponentBuilder<?, S>> SubComponentBuilder<S> appendAction(S builder, ActionMessage message) {
+    public static <S extends ComponentBuilder<?, S>> TextComponentBuilder<S> appendAction(S builder, ActionMessage message) {
         ClickEvent click = null;
         HoverEvent hover = null;
         if (message.clickAction() != null) {

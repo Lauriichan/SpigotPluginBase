@@ -13,7 +13,7 @@ import me.lauriichan.laylib.localization.MessageProvider;
 import me.lauriichan.laylib.logger.ISimpleLogger;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
-import me.lauriichan.minecraft.pluginbase.message.component.SubComponentBuilder;
+import me.lauriichan.minecraft.pluginbase.message.component.TextComponentBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class BukkitActor<P extends CommandSender> extends Actor<P> {
@@ -78,15 +78,15 @@ public class BukkitActor<P extends CommandSender> extends Actor<P> {
         sendBarMessage(messageManager.translate(messageId, getLanguage(), placeholders));
     }
 
-    public SubComponentBuilder<?> componentBuilder(IMessage message, Key... placeholders) {
+    public TextComponentBuilder<?> componentBuilder(IMessage message, Key... placeholders) {
         return ComponentBuilder.create().appendContent(messageManager.format(message, placeholders));
     }
 
-    public SubComponentBuilder<?> componentBuilder(MessageProvider provider, Key... placeholders) {
+    public TextComponentBuilder<?> componentBuilder(MessageProvider provider, Key... placeholders) {
         return ComponentBuilder.create().appendContent(messageManager.translate(provider, getLanguage(), placeholders));
     }
 
-    public SubComponentBuilder<?> componentBuilder(String messageId, Key... placeholders) {
+    public TextComponentBuilder<?> componentBuilder(String messageId, Key... placeholders) {
         return ComponentBuilder.create().appendContent(messageManager.translate(messageId, getLanguage(), placeholders));
     }
 
