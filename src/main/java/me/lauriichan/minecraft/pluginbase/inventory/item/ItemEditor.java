@@ -87,14 +87,30 @@ public final class ItemEditor {
         if (itemMeta == null) {
             return this;
         }
+        if (name == null) {
+            itemMeta.setDisplayName(null);
+            return this;
+        }
         itemMeta.setDisplayName(ComponentBuilder.parse(name).asLegacyText());
+        return this;
+    }
+
+    public ItemEditor setName(final ComponentBuilder<?, ?> name) {
+        if (itemMeta == null) {
+            return this;
+        }
+        if (name == null) {
+            itemMeta.setDisplayName(null);
+            return this;
+        }
+        itemMeta.setDisplayName(name.asLegacyText());
         return this;
     }
 
     public String getItemName() {
         return StringUtil.formatPascalCase(itemStack.getType().getKey().getKey().replace('_', ' '));
     }
-    
+
     public ColoredNameEditor name() {
         return new ColoredNameEditor(this);
     }
@@ -113,7 +129,7 @@ public final class ItemEditor {
         }
         return this;
     }
-    
+
     public ColoredLoreEditor lore() {
         return new ColoredLoreEditor(this);
     }
@@ -307,7 +323,7 @@ public final class ItemEditor {
         }
         return itemStack;
     }
-    
+
     public ItemStack asRawItemStack() {
         return itemStack;
     }
