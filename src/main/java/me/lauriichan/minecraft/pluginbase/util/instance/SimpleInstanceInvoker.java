@@ -2,19 +2,38 @@ package me.lauriichan.minecraft.pluginbase.util.instance;
 
 import java.util.Objects;
 
+import org.bukkit.plugin.Plugin;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class SimpleInstanceInvoker implements IInstanceInvoker {
     
+    private static class InstanceList extends ObjectArrayList<Object> {
+        private static final long serialVersionUID = -7046029254386353185L;
+
+        @Override
+        public int indexOf(Object k) {
+            for (int i = 0; i < size; i++) if (equals(k, a[i])) return i;
+            return -1;
+        }
+        
+        private boolean equals(Object a, Object b) {
+            if (a instanceof Plugin && b instanceof Plugin) {
+                return a == b;
+            }
+            return Objects.equals(a, b);
+        }
+    }
+
     private final IInstanceInvoker invoker;
 
-    private final ObjectArrayList<Object> extraArguments = new ObjectArrayList<>();
+    private final InstanceList extraArguments = new InstanceList();
     private volatile Object[] extraArgumentArray;
-    
+
     public SimpleInstanceInvoker() {
         this(DEFAULT);
     }
-    
+
     public SimpleInstanceInvoker(final IInstanceInvoker invoker) {
         this.invoker = invoker;
     }

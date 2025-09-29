@@ -8,8 +8,8 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.logging.Level;
 
-import org.bukkit.Material;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -22,6 +22,7 @@ import me.lauriichan.laylib.localization.source.AnnotationMessageSource;
 import me.lauriichan.laylib.localization.source.EnumMessageSource;
 import me.lauriichan.laylib.localization.source.IMessageDefinition;
 import me.lauriichan.laylib.logger.ISimpleLogger;
+import me.lauriichan.laylib.logger.util.StringUtil;
 import me.lauriichan.minecraft.pluginbase.ExtensionPoolImpl.ConditionMapImpl;
 import me.lauriichan.minecraft.pluginbase.command.argument.LoggerArgumentProvider;
 import me.lauriichan.minecraft.pluginbase.command.argument.UUIDArgument;
@@ -55,7 +56,7 @@ import me.lauriichan.minecraft.pluginbase.util.instance.SimpleInstanceInvoker;
 import me.lauriichan.minecraft.pluginbase.util.reflection.SpigotReflection;
 
 public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin implements IBasePluginAccess {
-    
+
     public static BasePlugin<?> getBasePlugin() {
         return ((IBasePluginAccess) BasePlugin.getProvidingPlugin(BasePlugin.class)).base();
     }
@@ -75,7 +76,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
 
         DISABLE_PLUGIN("disable", true),
         DISABLE_CORE("disable", false);
-        
+
         private final boolean isPlugin;
         private final String name;
 
@@ -91,19 +92,19 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         public boolean isPlugin() {
             return isPlugin;
         }
-        
+
         public boolean isLoad() {
             return this == LOAD_CORE || this == LOAD_PLUGIN || this == POST_LOAD_CORE;
         }
-        
+
         public boolean isEnable() {
             return this == ENABLE_CORE || this == ENABLE_PLUGIN || this == POST_ENABLE_CORE;
         }
-        
+
         public boolean isReady() {
             return this == READY_CORE || this == READY_PLUGIN;
         }
-        
+
         public boolean isDisable() {
             return this == DISABLE_CORE || this == DISABLE_PLUGIN;
         }
@@ -118,7 +119,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
 
     private volatile SimpleInstanceInvoker pluginInvoker;
     private volatile SharedInstances<IExtension> sharedExtensions;
-    
+
     private volatile IBukkitReflection bukkitReflection;
 
     private volatile ArgumentRegistry argumentRegistry;
@@ -127,25 +128,25 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     private volatile ConditionMapImpl conditionMap;
 
     private volatile IOManager ioManager;
-    
+
     private volatile ConfigMigrator configMigrator;
     private volatile ConfigManager configManager;
     private volatile ConfigWrapper<StartupConfig> startupConfig;
-    
+
     private volatile DataMigrator dataMigrator;
     private volatile DataManager dataManager;
 
     private volatile GameManager gameManager;
-    
+
     private volatile PagedInventoryRegistry pagedInventoryRegistry;
 
-    private volatile boolean actDisabled;
+    private volatile boolean actDisabled = false;
 
     protected final void actDisabled(boolean actDisabled) {
         this.actDisabled = actDisabled;
     }
 
-    protected final boolean actDisabled() {
+    public final boolean actDisabled() {
         return actDisabled;
     }
 
@@ -223,7 +224,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         resourceManager.register("jar", (plugin, path) -> new PathDataSource(plugin.jarRoot().resolveSibling(path)));
         resourceManager.register("data", (plugin, path) -> new FileDataSource(new File(plugin.getDataFolder(), path)));
     }
-    
+
     private final void loadInstances() {
         pluginInvoker = new SimpleInstanceInvoker();
         pluginInvoker.addExtra(this);
@@ -385,7 +386,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         argumentRegistry.registerArgumentType(UUIDArgument.class);
         onArgumentSetup(argumentRegistry);
     }
-    
+
     protected void setupIO() {
         ioManager = new IOManager(this);
     }
@@ -395,13 +396,13 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         configManager = new ConfigManager(this);
         configManager.reload();
     }
-    
+
     protected void setupData() {
         dataMigrator = new DataMigrator(this);
         dataManager = new DataManager(this);
         dataManager.reload();
     }
-    
+
     private final void setupGameManager() {
         gameManager = new GameManager(this);
     }
@@ -413,6 +414,10 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         pool.callInstances(listener -> pluginManager.registerEvents(listener, bukkitPlugin));
     }
 
+    @SuppressWarnings({
+        "rawtypes",
+        "unchecked"
+    })
     protected void registerMessages() {
         final IExtensionPool<IMessageExtension> pool = extension(IMessageExtension.class, false);
         final SimpleMessageProviderFactory factory = new SimpleMessageProviderFactory();
@@ -427,7 +432,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
             messageManager.register(new AnnotationMessageSource(extension, factory));
         });
     }
-    
+
     protected void disablePlugin() {
         getServer().getPluginManager().disablePlugin(bukkitPlugin());
     }
@@ -441,7 +446,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
         disableGames();
         clearFields();
     }
-    
+
     private final void disableGames() {
         for (GameProvider<?> provider : gameManager.getGames()) {
             GameState<?>[] states = provider.states().toArray(GameState[]::new);
@@ -485,16 +490,16 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     /*
      * Getter
      */
-    
+
     @Override
     public BasePlugin<?> base() {
         return this;
     }
-    
+
     public Plugin bukkitPlugin() {
         return this;
     }
-    
+
     public final Path jarRoot() {
         return jarRoot;
     }
@@ -502,19 +507,19 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     public final ISimpleLogger logger() {
         return logger;
     }
-    
+
     public final SharedInstances<IExtension> sharedExtensions() {
         return sharedExtensions;
     }
-    
+
     public final SimpleInstanceInvoker pluginInvoker() {
         return pluginInvoker;
     }
-    
+
     public final IBukkitReflection bukkitReflection() {
         return bukkitReflection;
     }
-    
+
     public final ResourceManager resourceManager() {
         return resourceManager;
     }
@@ -550,7 +555,7 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     public final DataManager dataManager() {
         return dataManager;
     }
-    
+
     public final GameManager gameManager() {
         return gameManager;
     }
