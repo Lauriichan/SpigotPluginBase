@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.function.Function;
 
 import me.lauriichan.laylib.json.IJson;
@@ -149,13 +150,25 @@ public final class SpigotUpdater<V extends Comparable<V>> {
     public V getVersion() {
         return version;
     }
-    
+
     public boolean hasLatestInfo() {
         return latest != null;
     }
 
+    public Optional<V> latestVersion() {
+        return latestInfo().map(ResourceInfo::version);
+    }
+
     public V getLatestVersion() throws SpigotUpdaterException {
         return getLatestInfo().version();
+    }
+
+    public Optional<ResourceInfo<V>> latestInfo() {
+        ResourceInfo<V> info = latest;
+        if (info == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(info);
     }
 
     public ResourceInfo<V> getLatestInfo() throws SpigotUpdaterException {
