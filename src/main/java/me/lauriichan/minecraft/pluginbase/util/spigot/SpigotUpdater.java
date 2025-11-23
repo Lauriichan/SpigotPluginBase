@@ -149,6 +149,10 @@ public final class SpigotUpdater<V extends Comparable<V>> {
     public V getVersion() {
         return version;
     }
+    
+    public boolean hasLatestInfo() {
+        return latest != null;
+    }
 
     public V getLatestVersion() throws SpigotUpdaterException {
         return getLatestInfo().version();
