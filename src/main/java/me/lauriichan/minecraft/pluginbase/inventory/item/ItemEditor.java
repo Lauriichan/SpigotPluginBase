@@ -12,15 +12,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
 
 import me.lauriichan.minecraft.pluginbase.message.component.ComponentBuilder;
 import me.lauriichan.minecraft.pluginbase.util.StringUtil;
 
 public final class ItemEditor {
-
-    public static ItemEditor ofHead(final OfflinePlayer player) {
-        return new ItemEditor(Material.PLAYER_HEAD).setHeadTexture(player);
-    }
 
     public static ItemEditor ofHead(final String texture) {
         return new ItemEditor(Material.PLAYER_HEAD).setHeadTexture(texture);
@@ -191,14 +188,6 @@ public final class ItemEditor {
         return this;
     }
 
-    public ItemEditor setHeadTexture(final OfflinePlayer player) {
-        if (!isHead()) {
-            return this;
-        }
-        HeadProfileProvider.PROVIDER.setTexture((SkullMeta) itemMeta, player);
-        return this;
-    }
-
     public String getHeadTexture() {
         if (!isHead()) {
             return null;
@@ -309,6 +298,38 @@ public final class ItemEditor {
     /*
      * Actions
      */
+
+    public ItemEditor applyHeadTexture(OfflinePlayer player, Consumer<ItemStack> applied) {
+        if (!isHead()) {
+            return this;
+        }
+        applyHead(player.getPlayerProfile(), applied);
+        return this;
+    }
+
+    public ItemEditor applyHeadTexture(PlayerProfile profile, Consumer<ItemStack> applied) {
+        if (!isHead()) {
+            return this;
+        }
+        applyHead(profile, applied);
+        return this;
+    }
+
+    private void applyHead(PlayerProfile profile, Consumer<ItemStack> applied) {
+        if (!profile.getTextures().isEmpty()) {
+            ((SkullMeta) itemMeta).setOwnerProfile(profile);
+            apply();
+            return;
+        }
+        profile.update().thenAccept(newProfile -> {
+            if (!(itemMeta instanceof SkullMeta meta)) {
+                return;
+            }
+            meta.setOwnerProfile(newProfile);
+            apply();
+            applied.accept(itemStack);
+        });
+    }
 
     public ItemEditor apply() {
         if (itemMeta != null) {

@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 
@@ -43,13 +42,12 @@ final class HeadProfileProvider {
     public void setTexture(final SkullMeta meta, final String texture) {
         meta.setOwnerProfile(profiles.computeIfAbsent(texture, this::buildProfile));
     }
-    
-    public void setTexture(final SkullMeta meta, final OfflinePlayer player) {
-        meta.setOwnerProfile(player.getPlayerProfile());
-    }
 
     public String getTexture(final SkullMeta meta) {
-        final PlayerProfile profile = meta.getOwnerProfile();
+        return getTexture(meta.getOwnerProfile());
+    }
+    
+    public String getTexture(final PlayerProfile profile) {
         if (profile == null) {
             return null;
         }
