@@ -35,6 +35,7 @@ public final class Property<T> {
     final void load(Configuration configuration) {
         Configuration section = configuration.getConfiguration(path, false);
         if (section == null) {
+            this.value = defaultValue;
             if (onLoad != null) {
                 onLoad.accept(defaultValue);
             }
