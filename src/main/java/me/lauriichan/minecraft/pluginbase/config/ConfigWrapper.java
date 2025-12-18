@@ -35,6 +35,10 @@ public final class ConfigWrapper<T extends IConfigExtension> implements IConfigW
     public static <S extends ISingleConfigExtension> ConfigWrapper<S> single(final BasePlugin<?> plugin, final S extension) {
         return new ConfigWrapper<>(plugin, extension, extension.path());
     }
+    
+    public static <E extends IConfigExtension> ConfigWrapper<E> single(final BasePlugin<?> plugin, final E extension, final String path) {
+        return new ConfigWrapper<>(plugin, extension, path);
+    }
 
     private final ISimpleLogger logger;
     private final ConfigMigrator migrator;
