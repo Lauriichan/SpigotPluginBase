@@ -10,26 +10,26 @@ import me.lauriichan.laylib.json.JsonArray;
 import me.lauriichan.laylib.json.JsonObject;
 import me.lauriichan.laylib.json.io.JsonParser;
 import me.lauriichan.laylib.json.io.JsonWriter;
-import me.lauriichan.laylib.reflection.ClassUtil;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.config.Configuration;
 import me.lauriichan.minecraft.pluginbase.config.IConfigHandler;
 import me.lauriichan.minecraft.pluginbase.io.IOManager;
+import me.lauriichan.minecraft.pluginbase.io.IOManager.Serialized;
 import me.lauriichan.minecraft.pluginbase.io.serialization.SerializationException;
 import me.lauriichan.minecraft.pluginbase.io.serialization.json.JsonSerializationHandler;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
 public final class JsonConfigHandler implements IConfigHandler {
-    
+
     public static final JsonWriter WRITER = new JsonWriter().setPretty(true).setSpaces(true).setIndent(4);
 
     public static final JsonConfigHandler JSON = new JsonConfigHandler();
-    
+
     public static final String KEY_SERIALIZE_TYPE = "type";
     public static final String KEY_SERIALIZE_DATA = "data";
 
     private final IOManager ioManager;
-    
+
     private JsonConfigHandler() {
         if (JSON != null) {
             throw new UnsupportedOperationException("Singleton");
@@ -74,12 +74,7 @@ public final class JsonConfigHandler implements IConfigHandler {
             loadToConfig(object, configuration.getConfiguration(key, true), onlyRaw);
             return;
         }
-        Class<?> valueType = ClassUtil.findClass(type);
-        if (valueType == null) {
-            throw new SerializationException("Can't read unknown serialized object of type '" + type + "', reason: Type is unknown");
-        }
-        IJson<?> json = object.get(KEY_SERIALIZE_DATA);
-        configuration.set(key, ioManager.deserialize(JsonSerializationHandler.class, json == null ? object : json, valueType));
+        configuration.set(key, ioManager.deserialize(JsonSerializationHandler.class, object, type));
     }
 
     @SuppressWarnings({
@@ -154,19 +149,16 @@ public final class JsonConfigHandler implements IConfigHandler {
             return IJson.of(object);
         } catch (IllegalArgumentException e) {
         }
-        IJson<?> json = (IJson<?>) ioManager.serialize(JsonSerializationHandler.class, object);
-        if (json == null) {
+        Serialized<JsonObject> serialized = ioManager.serialize(JsonSerializationHandler.class, object);
+        if (serialized == null) {
             return null;
         }
-        JsonObject jsonObject;
-        if (json.isObject()) {
-            jsonObject = json.asJsonObject();
-        } else {
-            jsonObject = new JsonObject();
-            jsonObject.put(KEY_SERIALIZE_DATA, json);
+        JsonObject json = serialized.value();
+        if (json.has(KEY_SERIALIZE_TYPE)) {
+            throw new SerializationException("Serialization handler wrote to reserved key!");
         }
-        jsonObject.put(KEY_SERIALIZE_TYPE, object.getClass().getName());
-        return jsonObject;
+        json.put(KEY_SERIALIZE_TYPE, serialized.handlerId());
+        return json;
     }
 
 }
