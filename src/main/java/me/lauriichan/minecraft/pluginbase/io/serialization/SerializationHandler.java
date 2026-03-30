@@ -1,13 +1,18 @@
 package me.lauriichan.minecraft.pluginbase.io.serialization;
 
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.io.IIOHandler;
+import me.lauriichan.minecraft.pluginbase.io.IOManager;
 
 public abstract class SerializationHandler<B, V> implements IIOHandler<B, V> {
 
+    protected final IOManager ioManager;
+    
     protected final Class<B> bufferType;
     protected final Class<V> valueType;
 
-    public SerializationHandler(final Class<B> bufferType, final Class<V> valueType) {
+    public SerializationHandler(final BasePlugin<?> plugin, final Class<B> bufferType, final Class<V> valueType) {
+        this.ioManager = plugin.ioManager();
         this.bufferType = bufferType;
         this.valueType = valueType;
     }

@@ -1,14 +1,15 @@
 package me.lauriichan.minecraft.pluginbase.io.serialization.json;
 
 import me.lauriichan.laylib.json.*;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.io.HandlerPoint;
 import me.lauriichan.minecraft.pluginbase.io.serialization.SerializationHandler;
 
 @HandlerPoint
 public abstract class JsonSerializationHandler<V> extends SerializationHandler<JsonObject, V> {
 
-    public JsonSerializationHandler(Class<V> type) {
-        super(JsonObject.class, type);
+    public JsonSerializationHandler(BasePlugin<?> plugin, Class<V> type) {
+        super(plugin, JsonObject.class, type);
     }
 
     @Override

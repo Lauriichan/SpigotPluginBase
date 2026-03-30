@@ -9,7 +9,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -392,7 +391,8 @@ public abstract class BasePlugin<T extends BasePlugin<T>> extends JavaPlugin imp
     }
     
     protected void setupIO() {
-        ioManager = new IOManager(this);
+        ioManager = new IOManager();
+        ioManager.setup(this);
     }
 
     private final void setupConfigs() {

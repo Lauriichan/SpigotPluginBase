@@ -18,7 +18,10 @@ public final class IOManager {
     private final Object2ObjectMap<Class<?>, Object2ObjectMap<Class<?>, Serialized<IIOHandler<?, ?>>>> handlers = new Object2ObjectOpenHashMap<>();
     private final Object2ObjectMap<Class<?>, Object2ObjectMap<String, Class<?>>> handlerIds = new Object2ObjectOpenHashMap<>();
 
-    public IOManager(BasePlugin<?> plugin) {
+    public void setup(BasePlugin<?> plugin) {
+        if (!handlers.isEmpty()) {
+            return;
+        }
         plugin.extension(IIOHandler.class, true).callInstances(handler -> {
             Class<?> next = handler.getClass().getSuperclass();
             while (next != null && next.getAnnotation(HandlerPoint.class) == null) {

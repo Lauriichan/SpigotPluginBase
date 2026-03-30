@@ -3,6 +3,7 @@ package me.lauriichan.minecraft.pluginbase.io.serialization.json;
 import java.util.Objects;
 
 import me.lauriichan.laylib.json.*;
+import me.lauriichan.minecraft.pluginbase.BasePlugin;
 import me.lauriichan.minecraft.pluginbase.io.HandlerPoint;
 
 @HandlerPoint
@@ -108,8 +109,8 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
     private final String key;
     private final JsonType<J> jsonType;
 
-    public KeyedJsonSerializationHandler(String key, JsonType<J> jsonType, Class<V> type) {
-        super(type);
+    public KeyedJsonSerializationHandler(BasePlugin<?> plugin, String key, JsonType<J> jsonType, Class<V> type) {
+        super(plugin, type);
         this.key = Objects.requireNonNull(key).trim();
         if (key.isEmpty()) {
             throw new IllegalArgumentException("Key can't be empty");
