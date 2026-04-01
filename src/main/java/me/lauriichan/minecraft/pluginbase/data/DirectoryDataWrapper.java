@@ -84,11 +84,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
         if (key != null) {
             return key;
         }
-        NamespacedKey location = NamespacedKey.fromString(path, plugin);
-        if (location == null) {
-            return null;
-        }
-        pathToKey.put(path, key = new FileKey(location, extension));
+        pathToKey.put(path, key = new FileKey(new NamespacedKey(plugin, path), extension));
         return key;
     }
 
