@@ -11,7 +11,7 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
 
     public static final JsonType<JsonObject> OBJECT = new JsonType<>() {
         @Override
-        protected JsonObject from(IJson<?> json) {
+        public JsonObject from(IJson<?> json) {
             if (json != null && json.isObject()) {
                 return json.asJsonObject();
             }
@@ -20,7 +20,7 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
     };
     public static final JsonType<JsonArray> ARRAY = new JsonType<>() {
         @Override
-        protected JsonArray from(IJson<?> json) {
+        public JsonArray from(IJson<?> json) {
             if (json != null && json.isArray()) {
                 return json.asJsonArray();
             }
@@ -29,7 +29,7 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
     };
     public static final JsonType<JsonString> STRING = new JsonType<>() {
         @Override
-        protected JsonString from(IJson<?> json) {
+        public JsonString from(IJson<?> json) {
             String string = asString(json);
             if (string == null) {
                 return null;
@@ -67,7 +67,7 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
     };
     public static final JsonType<JsonBoolean> BOOL = new JsonType<>() {
         @Override
-        protected JsonBoolean from(IJson<?> json) {
+        public JsonBoolean from(IJson<?> json) {
             if (json == null || json.isNull() || !json.isPrimitive()) {
                 return null;
             }
@@ -82,7 +82,7 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
     };
     public static final JsonType<IJsonNumber<?>> NUMBER = new JsonType<>() {
         @Override
-        protected IJsonNumber<?> from(IJson<?> json) {
+        public IJsonNumber<?> from(IJson<?> json) {
             if (json == null || json.isNull() || !json.isPrimitive()) {
                 return null;
             }
@@ -100,10 +100,10 @@ public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> exten
         }
     };
 
-    protected static abstract class JsonType<T extends IJson<?>> {
+    public static abstract class JsonType<T extends IJson<?>> {
         private JsonType() {}
 
-        protected abstract T from(IJson<?> json);
+        public abstract T from(IJson<?> json);
     }
 
     private final String key;
