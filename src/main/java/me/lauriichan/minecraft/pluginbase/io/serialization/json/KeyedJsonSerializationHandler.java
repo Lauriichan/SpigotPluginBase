@@ -4,9 +4,7 @@ import java.util.Objects;
 
 import me.lauriichan.laylib.json.*;
 import me.lauriichan.minecraft.pluginbase.BasePlugin;
-import me.lauriichan.minecraft.pluginbase.io.HandlerPoint;
 
-@HandlerPoint
 public abstract class KeyedJsonSerializationHandler<J extends IJson<?>, V> extends JsonSerializationHandler<V> {
 
     public static final JsonType<JsonObject> OBJECT = new JsonType<>() {

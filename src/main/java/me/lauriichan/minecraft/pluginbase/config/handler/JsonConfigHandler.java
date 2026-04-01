@@ -28,13 +28,19 @@ public final class JsonConfigHandler implements IConfigHandler {
     public static final String KEY_SERIALIZE_TYPE = "type";
     public static final String KEY_SERIALIZE_DATA = "data";
 
-    private final IOManager ioManager;
+    private IOManager ioManager;
 
     private JsonConfigHandler() {
         if (JSON != null) {
             throw new UnsupportedOperationException("Singleton");
         }
-        ioManager = BasePlugin.getBasePlugin().ioManager();
+    }
+    
+    private IOManager ioManager() {
+        if (ioManager != null) {
+            return ioManager;
+        }
+        return ioManager = BasePlugin.getBasePlugin().ioManager();
     }
 
     @Override
@@ -74,7 +80,7 @@ public final class JsonConfigHandler implements IConfigHandler {
             loadToConfig(object, configuration.getConfiguration(key, true), onlyRaw);
             return;
         }
-        configuration.set(key, ioManager.deserialize(JsonSerializationHandler.class, object, type));
+        configuration.set(key, ioManager().deserialize(JsonSerializationHandler.class, object, type));
     }
 
     @SuppressWarnings({
@@ -149,7 +155,7 @@ public final class JsonConfigHandler implements IConfigHandler {
             return IJson.of(object);
         } catch (IllegalArgumentException e) {
         }
-        Serialized<JsonObject> serialized = ioManager.serialize(JsonSerializationHandler.class, object);
+        Serialized<JsonObject> serialized = ioManager().serialize(JsonSerializationHandler.class, object);
         if (serialized == null) {
             return null;
         }
