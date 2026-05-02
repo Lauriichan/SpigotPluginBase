@@ -8,30 +8,7 @@ import me.lauriichan.minecraft.pluginbase.data.IDataHandler.Wrapper;
 import me.lauriichan.minecraft.pluginbase.extension.Order;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 
-public final class DataWrapper<T, D extends IFileDataExtension<T>> implements IDataWrapper<T, D> {
-
-    public static final int SUCCESS = 0x00;
-    public static final int SKIPPED = 0x01;
-    
-    public static final int FAIL_IO_LOAD = 0x11;
-    public static final int FAIL_IO_SAVE = 0x12;
-    
-    public static final int FAIL_DATA_PROPERGATE = 0x21;
-    public static final int FAIL_DATA_LOAD = 0x22;
-    public static final int FAIL_DATA_SAVE = 0x23;
-    public static final int FAIL_DATA_MIGRATE = 0x24;
-
-    public static boolean isFailedState(final int state) {
-        return state != SUCCESS && state != SKIPPED;
-    }
-
-    public static boolean isIOError(final int state) {
-        return state == FAIL_IO_LOAD || state == FAIL_IO_SAVE;
-    }
-
-    public static boolean isDataError(final int state) {
-        return state == FAIL_DATA_LOAD || state == FAIL_DATA_PROPERGATE || state == FAIL_DATA_MIGRATE || state == FAIL_DATA_SAVE;
-    }
+public final class DataWrapper<T, D extends IFileDataExtension<T>> implements IDirectDataWrapper<T, D> {
     
     public static <T, D extends ISingleDataExtension<T>> DataWrapper<T, D> single(final BasePlugin<?> plugin, final D extension) {
         return new DataWrapper<>(plugin, extension, extension.path());
@@ -106,7 +83,7 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
         };
     }
 
-    private int reloadSingle(final boolean force, final boolean wipeAfterLoad) {
+    public int reloadSingle(final boolean force, final boolean wipeAfterLoad) {
         Wrapper<T> value = new Wrapper<>();
         if (source.exists()) {
             if (!force && lastTimeModified == source.lastModified() && !data.isModified()) {
@@ -187,7 +164,7 @@ public final class DataWrapper<T, D extends IFileDataExtension<T>> implements ID
         };
     }
 
-    private int saveSingle(final boolean force) {
+    public int saveSingle(final boolean force) {
         if (!force && !data.isModified() && source.exists()) {
             return SKIPPED;
         }

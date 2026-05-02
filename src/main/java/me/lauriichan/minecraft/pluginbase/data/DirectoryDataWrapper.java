@@ -26,7 +26,7 @@ import me.lauriichan.minecraft.pluginbase.resource.source.FileDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.IDataSource;
 import me.lauriichan.minecraft.pluginbase.resource.source.PathDataSource;
 
-public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>> implements IDataWrapper<T, D> {
+public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>> implements IDirectDataWrapper<T, D> {
 
     private static final int[] EMPTY = new int[0];
 
@@ -217,7 +217,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
     private Result reload(File file, FileKey key, long modified, boolean force, boolean wipeAfterLoad) {
         long lastTimeModified = file.lastModified();
         if (!force && modified == lastTimeModified) {
-            return new Result(lastTimeModified, IDataWrapper.SKIPPED);
+            return new Result(lastTimeModified, SKIPPED);
         }
         FileDataSource source = new FileDataSource(file);
         FileData<T> value = new FileData<>(file, key);
@@ -227,7 +227,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
                 lastTimeModified = source.lastModified();
             } catch (final Exception exception) {
                 logger.warning("Failed to load data from '{0}/{1}'!", exception, path, key.location().getKey());
-                return new Result(lastTimeModified, IDataWrapper.FAIL_IO_LOAD);
+                return new Result(lastTimeModified, FAIL_IO_LOAD);
             }
             int version = value.version();
             if (migrator.needsMigration(dataType, version)) {
@@ -236,13 +236,13 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
                     value.version(newVersion);
                 } catch (DataMigrationFailedException exception) {
                     logger.warning("Failed to migrate data of '{0}/{1}'!", exception, path, key.location().getKey());
-                    return new Result(lastTimeModified, IDataWrapper.FAIL_DATA_MIGRATE);
+                    return new Result(lastTimeModified, FAIL_DATA_MIGRATE);
                 }
                 try {
                     handler.save(value, source);
                 } catch (final Exception exception) {
                     logger.warning("Failed to save migrated to '{0}/{1}'!", exception, path, key.location().getKey());
-                    return new Result(lastTimeModified, IDataWrapper.FAIL_IO_SAVE);
+                    return new Result(lastTimeModified, FAIL_IO_SAVE);
                 }
             }
             try {
@@ -250,14 +250,14 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
                 lastTimeModified = source.lastModified();
             } catch (final Exception exception) {
                 logger.warning("Failed to load data from '{0}/{1}'!", exception, path, key.location().getKey());
-                return new Result(lastTimeModified, IDataWrapper.FAIL_IO_LOAD);
+                return new Result(lastTimeModified, FAIL_IO_LOAD);
             }
         }
         try {
             data.onLoad(logger, value);
         } catch (final Exception exception) {
             logger.warning("Failed to load data of '{0}/{1}'!", exception, path, key.location().getKey());
-            return new Result(lastTimeModified, IDataWrapper.FAIL_DATA_LOAD);
+            return new Result(lastTimeModified, FAIL_DATA_LOAD);
         }
         if (wipeAfterLoad) {
             value.value(null);
@@ -318,7 +318,7 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
     private Result save(File file, FileKey key, long modified, boolean force) {
         long lastTimeModified = file.lastModified();
         if (!force && modified == lastTimeModified) {
-            return new Result(lastTimeModified, IDataWrapper.SKIPPED);
+            return new Result(lastTimeModified, SKIPPED);
         }
         FileDataSource source = new FileDataSource(file);
         FileData<T> value = new FileData<>(file, key);
@@ -330,23 +330,23 @@ public final class DirectoryDataWrapper<T, D extends IDirectoryDataExtension<T>>
             data.onSave(logger, value);
         } catch (final Exception exception) {
             logger.warning("Failed to save data of '{0}/{1}'!", exception, path, value.key().location().getKey());
-            return new Result(lastTimeModified, IDataWrapper.FAIL_DATA_SAVE);
+            return new Result(lastTimeModified, FAIL_DATA_SAVE);
         }
         if (migrator != null) {
             value.version(migrator.getTargetVersion(dataType));
         }
         if (value.shouldBeDeleted()) {
             value.file().delete();
-            return new Result(Long.MIN_VALUE, IDataWrapper.SUCCESS);
+            return new Result(Long.MIN_VALUE, SUCCESS);
         }
         try {
             handler.save(value, source);
             lastTimeModified = source.lastModified();
         } catch (final Exception exception) {
             logger.warning("Failed to save data to '{0}/{1}'!", exception, path, value.key().location().getKey());
-            return new Result(lastTimeModified, IDataWrapper.FAIL_IO_SAVE);
+            return new Result(lastTimeModified, FAIL_IO_SAVE);
         }
-        return new Result(lastTimeModified, IDataWrapper.SUCCESS);
+        return new Result(lastTimeModified, SUCCESS);
     }
 
 }
