@@ -60,11 +60,8 @@ public final class DataManager {
     }
 
     public ObjectList<IDataWrapper<?, ?>> wrappers() {
-        return Stream
-            .concat(Stream.concat(data.values().stream(), multiData.values().stream().flatMap(config -> config.wrappers().stream())),
-                directoryData.values().stream())
-            .sorted(IDataWrapper.ORDER_WRAPPER)
-            .collect(SimpleCollectors.toList());
+        return Stream.concat(Stream.concat(data.values().stream(), multiData.values().stream().flatMap(data -> data.wrappers().stream())),
+            directoryData.values().stream()).sorted(IDataWrapper.ORDER_WRAPPER).collect(SimpleCollectors.toList());
     }
 
     public <T, D extends ISingleDataExtension<T>> DataWrapper<T, D> wrapper(final Class<D> type) {
@@ -102,7 +99,7 @@ public final class DataManager {
         }
         return type.cast(wrapper.data());
     }
-    
+
     public boolean hasDirectory(final Class<? extends IDirectoryDataExtension<?>> type) {
         return directoryData.containsKey(type);
     }
