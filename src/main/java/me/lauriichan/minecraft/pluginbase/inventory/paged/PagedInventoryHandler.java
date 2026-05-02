@@ -197,6 +197,11 @@ public abstract class PagedInventoryHandler<H extends IInventoryPageExtension<H,
     /*
      * Update handler
      */
+    
+    @Override
+    public void onInit(HumanEntity entity, IGuiInventory inventory) {
+        onUpdate(inventory, true);
+    }
 
     @Override
     public void onUpdate(final IGuiInventory inventory, final boolean changed) {
