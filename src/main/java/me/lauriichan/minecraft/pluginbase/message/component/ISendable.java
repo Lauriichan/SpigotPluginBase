@@ -13,7 +13,7 @@ public interface ISendable {
 
     default void send(final Actor<?> actor) {
         final Actor<CommandSender> sender = actor.as(CommandSender.class);
-        if (!actor.isValid()) {
+        if (!sender.isValid()) {
             return;
         }
         send(sender.getHandle());
@@ -21,7 +21,7 @@ public interface ISendable {
 
     default void send(final Actor<?> actor, final ChatMessageType type) {
         final Actor<Player> sender = actor.as(Player.class);
-        if (!actor.isValid()) {
+        if (!sender.isValid()) {
             return;
         }
         send(sender.getHandle(), type);
